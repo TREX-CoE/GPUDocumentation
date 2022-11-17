@@ -1,0 +1,104 @@
+! vim: ft=fortran :
+! compile with pgfortran main.cuf
+
+!!SIZE OF A CUDA WARP
+#define WARP_SIZE 32
+!!NB_BANKS 16 for 1.x, 32 for >2.x
+#define NB_BANKS 32
+
+
+!!must stay 32x32
+#define BLOCK_X 32
+#define BLOCK_Y 32
+
+module kernel_mod
+  implicit none
+
+contains
+
+attributes(global) subroutine myKernel(size_x, size_y, d_out)
+  implicit none
+  integer, value :: size_x, size_y
+  integer, dimension(:) :: d_out
+  integer tx, ty, idx, idy
+  integer, shared :: shmem(BLOCK_X,BLOCK_Y+1)
+
+  tx = threadIdx%x
+  ty = threadIdx%y
+
+  idx = tx + (blockIdx%x - 1) * blockDim%x
+  idy = ty + (blockIdx%y - 1) * blockDim%y
+
+  !!write in shmen[ty][tx] the associated bank number. (shmem[0][0] = 0; ...; shmem[0][3] = 3 ...)
+  shmem(ty,tx) = mod( tx -1 + (ty-1) * (BLOCK_X+1), NB_BANKS)
+
+  call syncthreads()
+
+  if(idx <= size_x .and. idy <= size_y) &
+    d_out(idx + (idy-1) * size_x) = shmem(tx,ty)
+end subroutine myKernel
+
+end module kernel_mod
+
+program main
+  use cudafor
+  use kernel_mod
+  implicit none
+  integer istat, i, j, size_x, size_y, size_all
+  integer, allocatable, dimension(:) :: h_out
+  integer, allocatable, dimension(:), device :: d_out
+  type(dim3) :: blocksize, gridsize
+
+  integer :: index_in, idiv32, imod32, jdiv32, jmod32, idx_in, idy_in
+
+  size_x = 512
+  size_y = 512
+  size_all = size_x * size_y
+
+  !!host allocation
+  allocate(h_out(size_all))
+
+
+  !!host initialization
+  do i=1,size_all
+    h_out(i) = -1
+  end do
+
+
+  !!GPU allocation
+  istat = cudaMalloc(d_out, size_all)
+
+
+  !!copy h_in in d_in and h_out in d_out
+  istat = cudaMemcpy(d_out, h_out, size_all, cudaMemcpyHostToDevice)
+
+
+  !!kernel
+  blocksize = dim3(BLOCK_X,BLOCK_Y,1)
+  gridsize = dim3((size_x+blocksize%x-1)/blocksize%x &
+                 ,(size_y+blocksize%y-1)/blocksize%y &
+                 ,1)
+
+  !!myKernel
+  call myKernel<<<gridsize, blocksize>>>(size_x, size_y, d_out)
+
+  istat = cudaMemcpy(h_out, d_out, size_all, cudaMemcpyDeviceToHost)
+
+  !!
+  print*, "bank accesses for the warps of the first block"
+  do j=1,BLOCK_Y
+    print*, "Warp:", j
+    do i=1,BLOCK_X
+      write(*,'(i3x$)') h_out(i+(j-1)*size_x)
+    end do
+    print*, ""
+  end do
+
+
+  !!free GPU
+  istat = cudaFree(d_out)
+
+  !!free host
+  deallocate(h_out)
+
+end program main

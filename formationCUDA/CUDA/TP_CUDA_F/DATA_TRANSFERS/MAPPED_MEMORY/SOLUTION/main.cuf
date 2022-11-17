@@ -1,0 +1,75 @@
+! vim: ft=fortran :
+! compile with pgfortran main.cuf
+
+module kernel_mod  
+contains
+
+  attributes(global) subroutine  myKernel(size, d_i)
+    implicit none
+    integer, value :: size
+    integer, dimension(:) :: d_i
+    
+    integer index
+
+    index = threadIdx%x + (blockIdx%x - 1) * blockDim%x
+
+    if(index <= size) &
+         d_i(index) = d_i(index) + 1
+    
+  end subroutine myKernel
+
+end module kernel_mod
+
+
+
+
+
+program main
+  use cudafor
+  use kernel_mod
+  use iso_c_binding
+
+
+  implicit none
+
+  integer istat
+  integer i, size
+  type(c_ptr) :: c_ptra
+  type(c_devptr) :: c_devptra
+  integer, dimension(:), pointer :: h_i
+  integer, dimension(:), allocatable, device :: d_i
+  type(dim3) :: threadsPerBlock , numBlocks
+
+  size = 1000000
+
+  threadsPerBlock = dim3(256,1,1)
+  numBlocks = dim3((size+threadsPerBlock%x-1)/threadsPerBlock%x,1,1)
+
+  istat = cudaSetDeviceFlags(cudadevicemaphost)
+
+  istat = cudaHostAlloc(c_ptra,size*sizeof(1),cudaHostAllocMapped)
+
+  !move the c_ptr to an f90 pointer
+  call c_f_pointer(c_ptra, h_i, (/ size /) )
+ 
+  do i=1,size
+     h_i(i) = i
+  enddo
+  
+  !get a device pointer to the same array
+  istat= cudaHostGetDevicePointer(c_devptra, c_ptra, 0)
+
+  !move the c_devptr to an device allocatable array
+  call c_f_pointer(c_devptra, d_i, (/ size /) )
+
+  call myKernel<<< numBlocks, threadsPerBlock >>>(size, d_i)       
+
+  istat = cudaDeviceSynchronize()
+
+  !!print the result
+  print *, "h(1000) = ", h_i(1000), " expected 1001"
+
+  !!free host memory
+  istat = cudaFreeHost(c_ptra)
+
+end program main

@@ -1,0 +1,55 @@
+
+Complete the file warp.cu:
+
+
+--------------------------------------------
+Basic Management
+--------------------------------------------
+
+integer function cudaMalloc(devptr, count)
+
+  Parameters:
+  devPtr 	- Pointer to allocated device memory
+  count  	- Requested allocation size in number of elements
+
+
+
+integer function cudaMemcpy(dst, src, count, kind)
+    				 
+  Parameters:
+  dst	- Destination memory address
+  src 	- Source memory address
+  count - Size in number of elements to copy
+  kind 	- Type of transfer: cudaMemcpyHostToHost, cudaMemcpyHostToDevice, cudaMemcpyDeviceToHost, or cudaMemcpyDeviceToDevice
+
+
+integer cudaFree( devPtr )	
+
+  Parameters:
+  devPtr	- Device pointer to memory to free
+
+
+attributes(global)   declares kernel, which is called on host and executed on device
+attributes(device)   declares device function, which is called and executed on device
+attributes(host)     declares host function, which is called and executed on host
+
+
+dim3 : integer vector type
+  type(dim3) value = dim3( nx, ny, nz )
+  type(dim3) value 
+  value%x = nx
+  value%y = ny
+  value%z = nz
+  
+
+call kernelName<<< blocksInGrid, threadsPerBlock >>>(args, ... )
+
+
+
+Pre-defined variables
+ gridDim  	dimensions of grid
+ blockDim 	dimensions of block
+ blockIdx 	block index within grid
+ threadIdx	thread index within block
+
+

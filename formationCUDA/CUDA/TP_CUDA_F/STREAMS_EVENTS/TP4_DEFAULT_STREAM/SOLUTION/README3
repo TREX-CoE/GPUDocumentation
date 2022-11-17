@@ -1,0 +1,58 @@
+
+Use two different streams to perform copies and kernel launches:
+
+  the 0 or NULL stream to:
+    copy h_array1 in d_array1 asynchronously
+    launch myKernel on d_array1
+    copy d_array1 in h_array1 asynchronously
+
+  an other stream created with cudaStreamCreateWithFlags with the flag cudaStreamNonBlocking to:
+    copy h_array2 in d_array2 asynchronously
+    launch myKernel on d_array2
+    copy d_array2 in h_array2 asynchronously
+
+Create a profile trace with nvprof: « nvprof --export-profile profile.nvvp ./bin »
+
+Read the profile using nvvp
+
+
+
+
+
+
+
+
+
+Pinned memory allocation :: allocatable + pinned keyword
+
+
+integer(kind=cuda_stream_kind) :: stream
+
+
+integer function cudaStreamCreate( stream )
+ integer(kind=cuda_stream_kind), intent(out) :: stream
+
+
+integer function cudaStreamDestroy( stream )
+ integer(kind=cuda_stream_kind), intent(in) :: stream
+
+
+integer function cudaDeviceSynchronize()
+
+
+integer function cudaStreamSynchronize( stream )
+ integer(kind=cuda_stream_kind), intent(in) :: stream
+
+
+integer function cudaMemcpyAsync(dst, src, count, kdir, stream)
+
+
+<<< type(dim3) Dg, type(dim3) Db, integer Ns, integer(kind=cuda_stream_kind) stream >>>
+
+
+integer function cudaStreamCreateWithFlags( stream, flags )
+ integer(kind=cuda_stream_kind), intent(out) :: stream
+ integer, intent(in) :: flags       (cudaStreamDefault or cudaStreamNonBlocking)
+
+ 
+

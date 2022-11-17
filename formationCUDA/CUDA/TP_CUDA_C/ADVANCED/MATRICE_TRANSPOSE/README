@@ -1,0 +1,82 @@
+1) complete copy2d.cu
+
+2) copy copy2d.cu into transpose_global.cu
+   modify transpose_global.cu to perform a matrice transposition
+
+3) complete transpose_block.cu to perform a matrice transposition by block
+
+4) in transpose_block.cu, use shared memory as indermediate buffer for the transposition by block
+
+5) complete transpose_shared.cu to perform a full transposition using shared memory
+
+6) complete bank.cu
+
+7) optimize bank.cu
+
+8) optimize transpose_shared.cu
+
+
+
+
+--------------------------------------------
+Basic Management
+--------------------------------------------
+
+cudaError_t cudaMalloc( void ** devPtr, size_t  size )
+
+  Parameters:
+  devPtr        - Pointer to allocated device memory
+  size          - Requested allocation size in bytes
+
+
+
+cudaError_t cudaMemcpy( void *dst, const void *src, size_t count, enum cudaMemcpyKind kind )
+
+  Parameters:
+  dst   - Destination memory address
+  src   - Source memory address
+  count - Size in bytes to copy
+  kind  - Type of transfer: cudaMemcpyHostToHost, cudaMemcpyHostToDevice, cudaMemcpyDeviceToHost, or cudaMemcpyDeviceToDevice
+
+
+
+cudaError_t cudaFree( void *devPtr )
+
+  Parameters:
+  devPtr        - Device pointer to memory to free
+
+
+
+__global__   declares kernel, which is called on host and executed on device
+__device__   declares device function, which is called and executed on device
+__host__     declares host function, which is called and executed on host
+
+
+dim3 : integer vector type
+  dim3 value( nx, ny, nz );
+  dim3 value;
+  value.x = nx;
+  value.y = ny;
+  value.z = nz;
+
+
+kernelName<<< blocksInGrid, threadsPerBlock >>>(args, ... );
+
+
+Pre-defined variables
+ gridDim        dimensions of grid
+ blockDim       dimensions of block
+ blockIdx       block index within grid
+ threadIdx      thread index within block
+
+
+
+Declaring variables
+__device__  	declares device variable in global memory, accessible from all threads, with lifetime of application
+__constant__	declares device variable in constant memory, accessible from all threads, with lifetime of application
+__shared__  	declares device varibale in block's shared memory, accessible from all threads within a block, with lifetime of block
+
+
+
+
+

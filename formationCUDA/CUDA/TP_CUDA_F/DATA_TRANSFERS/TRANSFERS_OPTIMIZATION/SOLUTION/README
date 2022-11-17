@@ -1,0 +1,21 @@
+
+Copy nBody_a_square_omp.F90 in nBody_a_square.CUF
+
+$ pgcc -c wallclock.c
+$ pgf90 nBody_a_square_omp.F90 wallclock.o && ./a.out 100 200
+
+
+1) Port update_velocity on GPU:
+       -allocate data on device
+       -copy data on device
+       -call a kernel to update data on device
+       -copy data from device to host
+       -free data on device
+
+2) Analyze data movement and then minimize data transfers
+
+
+3) Port update_position on GPU
+
+
+4) Analyze data movement and then minimize data transfers

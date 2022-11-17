@@ -1,0 +1,21 @@
+
+Copy deviceQuery.cpp and bandwidthTest.cu from the nvidia samples
+
+  #cp ${CUDA_HOME}/samples/1_Utilities/deviceQuery/deviceQuery.cpp ./
+  #cp ${CUDA_HOME}/samples/1_Utilities/bandwidthTest/bandwidthTest.cu ./
+
+Compile both files:
+
+  #nvcc -I ${CUDA_HOME}/samples/common/inc  ./deviceQuery.cpp -o ./deviceQuery.exe
+  #nvcc -I ${CUDA_HOME}/samples/common/inc  ./bandwidthTest.cu -o ./bandwidthTest.exe
+
+Execute binaries:
+  #./deviceQuery.exe
+  #./bandwidthTest.exe
+
+
+Set CUDA_VISIBLE_DEVICES variable to 1. Execute binaries
+
+Set CUDA_VISIBLE_DEVICES variable to NaN. Execute binaries
+
+Unset CUDA_VISIBLE_DEVICES. Execute binaries

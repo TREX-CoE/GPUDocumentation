@@ -1,0 +1,42 @@
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!! No equivalent with pgf90 !!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!! in C
+Compile the previous file with --default-stream per-thread
+Create a profile trace with nvprof: « nvprof --export-profile profile.nvvp ./bin »
+Read the profile using nvvp
+
+
+
+
+
+
+Pinned memory allocation :: allocatable + pinned keyword
+
+
+integer(kind=cuda_stream_kind) :: stream
+
+
+integer function cudaStreamCreate( stream )
+ integer(kind=cuda_stream_kind), intent(out) :: stream
+
+
+integer function cudaStreamDestroy( stream )
+ integer(kind=cuda_stream_kind), intent(in) :: stream
+
+
+integer function cudaDeviceSynchronize()
+
+
+integer function cudaStreamSynchronize( stream )
+ integer(kind=cuda_stream_kind), intent(in) :: stream
+
+
+integer function cudaMemcpyAsync(dst, src, count, kdir, stream)
+
+
+<<< type(dim3) Dg, type(dim3) Db, integer Ns, integer(kind=cuda_stream_kind) stream >>>
+

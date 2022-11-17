@@ -1,0 +1,79 @@
+! vim: ft=fortran :
+! compile with pgfortran main.cuf
+
+#define CudaSafeCall( err )   __cudaSafeCall( err, __FILE__, __LINE__ )
+
+subroutine __cudaSafeCall(err, filename, linenum)
+  implicit none
+  integer :: err
+  character(len=*) :: filename
+  integer :: linenum
+  character(len=1024) :: linenum_str, err_str
+
+#if defined(DEBUG) || defined(_DEBUG)
+  if (err /= 0) then
+          write(linenum_str, *) linenum
+          write(err_str, *) err
+          write(*,*) "cudaSafeCall() failed at " // trim(filename) // ':', trim(adjustl(linenum_str)), '        err=', trim(adjustl(err_str))
+          !!, cudaGetErrorString(err));
+          call EXIT(err)
+  end if
+#endif
+end subroutine __cudaSafeCall
+
+program main
+  use cudafor
+  implicit none
+  integer i
+  integer success
+  integer size
+  integer, allocatable, dimension(:) :: h_a
+  integer, allocatable, dimension(:) :: h_b
+  integer, allocatable, dimension(:), device :: d_a
+  integer, allocatable, dimension(:), device :: d_b
+
+  size =256
+
+  !!host allocation
+  allocate(h_a(size))
+  allocate(h_b(size))
+
+  !!host initialization
+  do i=1, size
+    h_a(i) = i
+    h_b(i) = 0
+  end do
+
+  !!GPU allocation
+  call CudaSafeCall( cudaMalloc(d_a, size) )
+  call CudaSafeCall( cudaMalloc(d_b, size) )
+
+  !!copy h_a in d_a
+  call CudaSafeCall( cudaMemcpy(d_a, h_a, size, cudaMemcpyHostToDevice) )
+
+  !!copy d_a in d_b
+  call CudaSafeCall( cudaMemcpy(d_b, d_a, size, cudaMemcpyDeviceToDevice) )
+
+  !!copy d_b in h_b
+  call CudaSafeCall( cudaMemcpy(h_b, d_b, size, cudaMemcpyDeviceToHost) )
+
+  !!check resulst
+  success = 1;
+  do i=1, size
+    if(h_b(i) /= h_a(i)) success=0
+  end do
+
+  if(success == 1) then
+    write(*,*) 'SUCCESS'
+  else
+    write(*,*) 'ERROR'
+  end if
+
+  !!free GPU
+  call CudaSafeCall( cudaFree(d_a) )
+  call CudaSafeCall( cudaFree(d_b) )
+
+  !!free host
+  deallocate(h_a)
+  deallocate(h_b)
+end program main

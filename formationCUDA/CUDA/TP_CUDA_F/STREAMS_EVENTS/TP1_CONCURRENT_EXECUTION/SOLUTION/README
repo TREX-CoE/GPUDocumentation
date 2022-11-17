@@ -1,0 +1,21 @@
+Complete the file concurrent.cuf
+  compile
+    pgcc -c wallclock.c
+    pgf90 -Mcuda=cc?? main.cuf wallclock.o
+
+Profile with nvprof:
+  #nvprof ./bin
+  
+
+According to nvprof how much time is spend on GPU between t1 and t4?
+Compare this time with the one given by the application.
+
+
+Create a profile trave with nvprof: 
+  #nvprof --export-profile profile.nvvp ./bin
+
+Read the profile using nvvp
+
+
+
+

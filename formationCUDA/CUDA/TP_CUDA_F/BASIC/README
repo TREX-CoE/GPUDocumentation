@@ -1,0 +1,9 @@
+
+Keyword device allows to make a allocate to allocate memory on device
+
+  ex: real, allocatable, dimension(:), device :: d_array
+
+TP2:
+in kernel:
+write(output_unit,* ) 'Hello world!'
+=> PGF90-S-0155-I/O statements allowed in device routines only in emulation mode  (SOLUTION/main.cuf: 8)

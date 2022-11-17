@@ -1,0 +1,9 @@
+olympevolta0
+==24684== NVPROF is profiling process 24684, command: ./nbody_cuda.exe 1000 50
+==24684== Error: File already exists: /olympe2/invite/hoffer/CUDA/TP_CUDA_C/DATA_TRANSFERS/TRANSFERS_OPTIMIZATION/test_prof_v1.nvvp
+==24684== Use "-f" to overwrite existing file
+vtan: 7544.980263
+size: 8000     simulation time(in sec): 1000.000000     execution time: 1.814749
+RES: -2.9004e+10 1.68488e+10 -1.20139e+10 -1.6803e+07 -3.38648e+07 -6.96005e+06
+maxvtan: 7548.576660    minvtan: 7548.547852
+done

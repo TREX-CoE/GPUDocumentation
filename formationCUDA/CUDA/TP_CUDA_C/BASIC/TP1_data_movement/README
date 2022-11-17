@@ -1,0 +1,33 @@
+
+Complete main.cu to:
+  -allocate d_a and d_b on GPU
+  -copy h_a into d_a
+  -copy d_a into d_b
+  -copy d_b into h_b
+  -free d_a and d_b
+
+
+
+
+cudaError_t cudaMalloc(	void **	devPtr, size_t 	size )
+
+  Parameters:
+  devPtr 	- Pointer to allocated device memory
+  size  	- Requested allocation size in bytes
+
+
+
+cudaError_t cudaMemcpy( void *dst, const void *src, size_t count, enum cudaMemcpyKind kind )
+    				 
+  Parameters:
+  dst	- Destination memory address
+  src 	- Source memory address
+  count - Size in bytes to copy
+  kind 	- Type of transfer: cudaMemcpyHostToHost, cudaMemcpyHostToDevice, cudaMemcpyDeviceToHost, or cudaMemcpyDeviceToDevice
+
+
+
+cudaError_t cudaFree( void *devPtr )	
+
+  Parameters:
+  devPtr	- Device pointer to memory to free

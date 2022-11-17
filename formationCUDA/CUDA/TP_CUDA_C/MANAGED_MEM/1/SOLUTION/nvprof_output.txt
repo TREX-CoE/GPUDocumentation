@@ -1,0 +1,71 @@
+nvcc: NVIDIA (R) Cuda compiler driver
+Copyright (c) 2005-2018 NVIDIA Corporation
+Built on Sat_Aug_25_21:08:01_CDT_2018
+Cuda compilation tools, release 10.0, V10.0.130
+Launching executable
+success 
+Elapsed time: 0.00308214
+
+real	0m0.326s
+user	0m0.030s
+sys	0m0.282s
+success 
+Elapsed time: 0.00213945
+
+real	0m0.303s
+user	0m0.031s
+sys	0m0.270s
+==22215== NVPROF is profiling process 22215, command: ./vec_add
+success 
+Elapsed time: 0.00392733
+==22215== Profiling application: ./vec_add
+==22215== Profiling result:
+            Type  Time(%)      Time     Calls       Avg       Min       Max  Name
+ GPU activities:  100.00%  3.8472ms         1  3.8472ms  3.8472ms  3.8472ms  vec_add(float*, float*, float*, int)
+      API calls:   96.70%  265.35ms         3  88.451ms  12.403us  265.31ms  cudaMallocManaged
+                    1.40%  3.8528ms         1  3.8528ms  3.8528ms  3.8528ms  cudaDeviceSynchronize
+                    0.74%  2.0225ms         2  1.0113ms  1.0101ms  1.0124ms  cuDeviceTotalMem
+                    0.63%  1.7406ms       192  9.0650us     163ns  355.61us  cuDeviceGetAttribute
+                    0.45%  1.2221ms         3  407.36us  359.94us  452.63us  cudaFree
+                    0.05%  146.88us         2  73.440us  72.366us  74.514us  cuDeviceGetName
+                    0.02%  63.570us         1  63.570us  63.570us  63.570us  cudaLaunchKernel
+                    0.00%  6.7440us         2  3.3720us  1.8060us  4.9380us  cuDeviceGetPCIBusId
+                    0.00%  1.7100us         4     427ns     204ns     862ns  cuDeviceGet
+                    0.00%  1.3250us         3     441ns     166ns     745ns  cuDeviceGetCount
+                    0.00%     550ns         2     275ns     238ns     312ns  cuDeviceGetUuid
+
+==22215== Unified Memory profiling result:
+Device "Tesla V100-SXM2-32GB (0)"
+   Count  Avg Size  Min Size  Max Size  Total Size  Total Time  Name
+     238  51.630KB  4.0000KB  0.9805MB  12.00000MB  1.709312ms  Host To Device
+      24  170.67KB  4.0000KB  0.9961MB  4.000000MB  350.0160us  Device To Host
+      14         -         -         -           -  3.821472ms  Gpu page fault groups
+Total CPU Page faults: 48
+==22230== NVPROF is profiling process 22230, command: ./vec_add_prefetch
+success 
+Elapsed time: 0.00215996
+==22230== Profiling application: ./vec_add_prefetch
+==22230== Profiling result:
+            Type  Time(%)      Time     Calls       Avg       Min       Max  Name
+ GPU activities:  100.00%  22.560us         1  22.560us  22.560us  22.560us  vec_add(float*, float*, float*, int)
+      API calls:   97.20%  250.89ms         3  83.631ms  14.427us  250.83ms  cudaMallocManaged
+                    0.77%  2.0004ms         2  1.0002ms  996.61us  1.0038ms  cuDeviceTotalMem
+                    0.67%  1.7415ms       192  9.0700us     167ns  356.34us  cuDeviceGetAttribute
+                    0.53%  1.3762ms         1  1.3762ms  1.3762ms  1.3762ms  cudaDeviceSynchronize
+                    0.46%  1.1880ms         3  395.99us  351.22us  436.05us  cudaFree
+                    0.27%  707.77us         3  235.92us  6.9340us  573.63us  cudaMemPrefetchAsync
+                    0.06%  146.56us         2  73.280us  71.683us  74.878us  cuDeviceGetName
+                    0.02%  57.194us         1  57.194us  57.194us  57.194us  cudaLaunchKernel
+                    0.00%  6.3450us         2  3.1720us  1.6560us  4.6890us  cuDeviceGetPCIBusId
+                    0.00%  3.6560us         1  3.6560us  3.6560us  3.6560us  cudaGetDevice
+                    0.00%  2.4090us         4     602ns     228ns  1.3630us  cuDeviceGet
+                    0.00%  1.5640us         3     521ns     180ns     763ns  cuDeviceGetCount
+                    0.00%     576ns         2     288ns     251ns     325ns  cuDeviceGetUuid
+
+==22230== Unified Memory profiling result:
+Device "Tesla V100-SXM2-32GB (0)"
+   Count  Avg Size  Min Size  Max Size  Total Size  Total Time  Name
+       6  2.0000MB  2.0000MB  2.0000MB  12.00000MB  1.047904ms  Host To Device
+      24  170.67KB  4.0000KB  0.9961MB  4.000000MB  349.9200us  Device To Host
+Total CPU Page faults: 48
+End of Script

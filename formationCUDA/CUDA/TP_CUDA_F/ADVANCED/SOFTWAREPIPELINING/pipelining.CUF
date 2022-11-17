@@ -1,0 +1,161 @@
+! vim: ft=fortran :
+! compile with pgfortran main.cuf
+!! must stay 32x32
+#define BLOCK_X 32
+#define BLOCK_Y 32
+
+
+module kernel_mod
+  implicit none
+
+contains
+
+attributes(global) subroutine  mykernel_ref(size_x, size_y, size_z, d_in, d_out)
+  implicit none
+  integer, value :: size_x, size_y, size_z
+  integer, dimension(:) :: d_in, d_out
+  integer tx, ty, idx, idy, idz, temp
+
+  tx = threadIdx%x
+  ty = threadIdx%y
+
+  idx = tx + (blockIdx%x - 1) * blockDim%x
+  idy = ty + (blockIdx%y - 1) * blockDim%y
+  
+  do idz = 4, size_z-5
+    temp = d_in(idx + (idy-1)*size_x + (idz+0)*size_x*size_y) &
+         + d_in(idx + (idy-1)*size_x + (idz+1)*size_x*size_y) - d_in(idx + (idy-1)*size_x + (idz-1)*size_x*size_y) &
+         + d_in(idx + (idy-1)*size_x + (idz+2)*size_x*size_y) - d_in(idx + (idy-1)*size_x + (idz-2)*size_x*size_y) &
+         + d_in(idx + (idy-1)*size_x + (idz+3)*size_x*size_y) - d_in(idx + (idy-1)*size_x + (idz-3)*size_x*size_y) &
+         + d_in(idx + (idy-1)*size_x + (idz+4)*size_x*size_y) - d_in(idx + (idy-1)*size_x + (idz-4)*size_x*size_y)
+
+    if( idx <= size_x .and. idy <= size_y) &
+            d_out(idx + (idy-1)*size_x + idz * size_x * size_y) = temp
+  end do
+end subroutine mykernel_ref
+
+attributes(global) subroutine  mykernel_pipeline(size_x, size_y, size_z, d_in, d_out)
+  implicit none
+  integer, value :: size_x, size_y, size_z
+  integer, dimension(:) :: d_in, d_out
+  integer tx, ty, idx, idy, idz, temp
+
+  integer in_m4, in_m3, in_m2, in_m1, in_cu, in_p1, in_p2, in_p3, in_p4
+
+  tx = threadIdx%x
+  ty = threadIdx%y
+
+  idx = tx + (blockIdx%x - 1) * blockDim%x
+  idy = ty + (blockIdx%y - 1) * blockDim%y
+  idz = 0
+  
+  !!load in register the first memory accesses
+  !!initalization of the pipeline
+  in_m4 = ...
+  in_m3 = ...
+  in_m2 = ...
+  in_m1 = ...
+  in_cu = ...
+  in_p1 = ...
+  in_p2 = ...
+  in_p3 = ...
+  in_p4 = ...
+
+  do idz = 4, size_z-5
+    !!pipeline
+    in_m4 = ...
+    in_m3 = ...
+    in_m2 = ...
+    in_m1 = ...
+    in_cu = ...
+    in_p1 = ...
+    in_p2 = ...
+    in_p3 = ...
+    in_p4 = ...
+
+    temp = in_cu &
+      +    ... &
+      +    ... &
+      +    ... &
+      +    ...
+
+    if( idx <= size_x .and. idy <= size_y) &
+            d_out(idx + (idy-1)*size_x + idz * size_x * size_y) = temp
+  end do
+end subroutine mykernel_pipeline
+end module kernel_mod
+
+
+program main
+  use cudafor
+  use kernel_mod
+  implicit none
+  integer istat, size_all, size_x, size_y, size_z, i
+  integer, allocatable, dimension(:) :: h_in, h_out1, h_out2
+  integer, allocatable, dimension(:), device :: d_in, d_out1, d_out2
+  type(dim3) :: dimBlock, dimGrid
+
+  size_x = 512
+  size_y = 512
+  size_z = 512
+  size_all = size_x * size_y * size_z
+
+  !!allocation and initialization on the host
+  allocate(h_in(size_all))
+  allocate(h_out1(size_all))
+  allocate(h_out2(size_all))
+
+  do i=1,size_all
+    h_in(i) = i
+    h_out1(i) = 0
+    h_out2(i) = 0
+  end do
+
+  dimBlock = dim3(BLOCK_X,BLOCK_Y,1)
+  dimGrid = dim3((size_x+dimGrid%x-1)/dimBlock%x &
+                ,(size_y+dimGrid%y-1)/dimBlock%y  &
+                ,1)
+
+  !!allocation on the device
+  istat = cudaMalloc(d_in, size_all)
+  istat = cudaMalloc(d_out1, size_all)
+  istat = cudaMalloc(d_out2, size_all)
+
+
+  !!inialization on the device (copy of the host value)
+  istat = cudaMemcpy(d_in, h_in, size_all, cudaMemcpyHostToDevice)
+  istat = cudaMemcpy(d_out1, h_out1, size_all, cudaMemcpyHostToDevice)
+  istat = cudaMemcpy(d_out2, h_out2, size_all, cudaMemcpyHostToDevice)
+
+  !! WARMUP
+  call myKernel_ref<<< dimGrid, dimBlock >>>(size_x, size_y, size_z, d_in, d_out1)
+  call myKernel_pipeline<<< dimGrid, dimBlock >>>(size_x, size_y, size_z, d_in, d_out2)
+
+  !! RUN
+  call myKernel_ref<<< dimGrid, dimBlock >>>(size_x, size_y, size_z, d_in, d_out1)
+  call myKernel_pipeline<<< dimGrid, dimBlock >>>(size_x, size_y, size_z, d_in, d_out2)
+
+  istat = cudaMemcpy(h_out1, d_out1, size_all, cudaMemcpyDeviceToHost)
+  istat = cudaMemcpy(h_out2, d_out2, size_all, cudaMemcpyDeviceToHost)
+
+
+  !! CHECK RESULTS
+  do i=1, size_all
+    if(h_out2(i) /= h_out1(i)) then
+      print*, "error for i=", i, "h_out1 != h_out2", h_out1(i), h_out2(i)
+      call exit(-1)
+    end if
+  end do
+
+
+
+  !!free device and host memory
+  istat = cudaFree(d_in )
+  istat = cudaFree(d_out1)
+  istat = cudaFree(d_out2)
+  deallocate(h_in)
+  deallocate(h_out1)
+  deallocate(h_out2)
+
+
+end program main

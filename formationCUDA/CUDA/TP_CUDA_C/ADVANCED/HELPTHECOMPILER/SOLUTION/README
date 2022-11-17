@@ -1,0 +1,4 @@
+
+Modify the declaration of in and out in myKernel_opt:
+
+  use const and __restrict__ specifiers

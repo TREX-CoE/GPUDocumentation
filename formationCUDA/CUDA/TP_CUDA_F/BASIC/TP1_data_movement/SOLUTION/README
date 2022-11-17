@@ -1,0 +1,30 @@
+
+Complete main.CUF to:
+  -allocate d_a and d_b on GPU
+  -copy h_a into d_a
+  -copy d_a into d_b
+  -copy d_b into h_b
+  -free d_a and d_b
+
+
+integer function cudaMalloc(devptr, count)
+
+  Parameters:
+  devPtr 	- Pointer to allocated device memory
+  count  	- Requested allocation size in number of elements
+
+
+
+integer function cudaMemcpy(dst, src, count, kind)
+    				 
+  Parameters:
+  dst	- Destination memory address
+  src 	- Source memory address
+  count - Size in number of elements to copy
+  kind 	- Type of transfer: cudaMemcpyHostToHost, cudaMemcpyHostToDevice, cudaMemcpyDeviceToHost, or cudaMemcpyDeviceToDevice
+
+
+integer cudaFree( devPtr )	
+
+  Parameters:
+  devPtr	- Device pointer to memory to free

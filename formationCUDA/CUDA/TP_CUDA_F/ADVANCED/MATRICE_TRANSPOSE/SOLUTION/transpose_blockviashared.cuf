@@ -1,0 +1,128 @@
+! vim: ft=fortran :
+! compile with pgfortran main.cuf
+
+module kernel_mod
+  implicit none
+
+contains
+
+attributes(global) subroutine transpose_blockshmem(size_x, size_y, d_in, d_out)
+  implicit none
+  integer, value :: size_x, size_y
+  integer, dimension(:) :: d_in, d_out
+  integer tx, ty, idx_in, idy_in, idx_out, idy_out
+  integer, shared :: shmem(32,32)
+
+  tx = threadIdx%x
+  ty = threadIdx%y
+
+  idx_in = tx + (blockIdx%x - 1) * blockDim%x
+  idy_in = ty + (blockIdx%y - 1) * blockDim%y
+
+  idx_out= tx + (blockIdx%y - 1) * blockDim%y
+  idy_out= ty + (blockIdx%x - 1) * blockDim%x
+
+  shmem(ty,tx) = d_in(idx_in + (idy_in-1) * size_x)
+
+  call syncthreads()
+
+  d_out(idx_out + (idy_out-1) * size_y) = shmem(ty,tx)
+end subroutine transpose_blockshmem
+
+end module kernel_mod
+
+program main
+  use cudafor
+  use kernel_mod
+  implicit none
+  integer istat, i, j, size_x, size_y, size_all
+  integer, allocatable, dimension(:) :: h_in, h_out
+  integer, allocatable, dimension(:), device :: d_in, d_out
+  integer success, first_index_error_i, first_index_error_j
+  type(dim3) :: blocksize, gridsize
+
+  integer :: index_in, idiv32, imod32, jdiv32, jmod32, idx_in, idy_in
+
+  size_x = 512
+  size_y = 512
+  size_all = size_x * size_y
+
+  !!host allocation
+  allocate(h_in(size_all))
+  allocate(h_out(size_all))
+
+
+  !!host initialization
+  do i=1,size_all
+    h_in(i) = i
+    h_out(i) = -1
+  end do
+
+
+  !!GPU allocation
+  istat = cudaMalloc(d_in, size_all)
+  istat = cudaMalloc(d_out, size_all)
+
+
+  !!copy h_in in d_in and h_out in d_out
+  istat = cudaMemcpy(d_in, h_in, size_all, cudaMemcpyHostToDevice)
+  istat = cudaMemcpy(d_out, h_out, size_all, cudaMemcpyHostToDevice)
+
+
+  !!kernel
+  blocksize = dim3(32,32,1)
+  gridsize = dim3((size_x+blocksize%x-1)/blocksize%x &
+                 ,(size_y+blocksize%y-1)/blocksize%y &
+                 ,1)
+
+  !!transpose_blockshmem
+  call transpose_blockshmem<<<gridsize, blocksize>>>(size_x, size_y, d_in, d_out)
+
+  istat = cudaMemcpy(h_out, d_out, size_all, cudaMemcpyDeviceToHost)
+
+  !!check resulst
+  success = 1
+  first_index_error_i = -1
+  first_index_error_j = -1
+
+  do j=1,size_y
+    do i=1,size_x
+      idiv32 = (i-1) / blocksize%x 
+      imod32 = mod(i-1 ,blocksize%x )
+      jdiv32 = (j-1) / blocksize%y 
+      jmod32 = mod(j-1 ,blocksize%y )
+      idx_in =  imod32+1 + jdiv32 * blocksize%y 
+      idy_in =  jmod32+1 + idiv32 * blocksize%x 
+      index_in = idx_in + (idy_in-1) *size_y 
+
+      if(success == 1 .and. h_out(i+(j-1)*size_x) /= h_in(index_in)) then
+        if(success == 1) then ! print first message
+          write(*,*) 'ERROR: h_out(',i,',',j,')=' &
+             , h_out(i+ (j-1)*size_x) &
+             , ' expected ' &
+             , h_in(index_in), '@', index_in
+          call exit(1)
+        end if
+
+        success = 0
+        first_index_error_i = i
+        first_index_error_j = j
+        end if
+    end do
+  end do
+
+
+  if(success == 1) then
+    write(*,*) 'SUCCESS'
+  end if
+
+
+  !!free GPU
+  istat = cudaFree(d_in )
+  istat = cudaFree(d_out)
+
+  !!free host
+  deallocate(h_in )
+  deallocate(h_out)
+
+end program main

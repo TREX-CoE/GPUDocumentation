@@ -1,0 +1,10 @@
+Using nvidia-smi find the:
+
+  Driver version
+  GPU model
+  Memory usage
+  GPU usage
+  GPU temperature
+  Power consumption
+  Compute processes
+

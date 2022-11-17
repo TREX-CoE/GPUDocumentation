@@ -1,0 +1,6 @@
+========= CUDA-MEMCHECK
+========= Error: Could not find ./prog
+========= CUDA-MEMCHECK
+========= ERROR SUMMARY: 0 errors
+srun: error: olympevolta0: task 0: Exited with exit code 1
+srun: Terminating job step 627219.0

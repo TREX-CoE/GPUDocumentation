@@ -1,0 +1,99 @@
+! vim: ft=fortran :
+! compile with pgfortran main.cuf
+
+module kernel_mod
+  implicit none
+
+contains
+
+attributes(global) subroutine copy2d(size_x, size_y, d_in, d_out)
+  implicit none
+  integer, value :: size_x, size_y
+  integer, dimension(:) :: d_in, d_out
+  integer tx, ty
+
+  tx = threadIdx%x + (blockIdx%x - 1) * blockDim%x
+  ty = threadIdx%y + (blockIdx%y - 1) * blockDim%y
+
+  d_out(tx + (ty-1) * size_x) = d_in(tx + (ty-1) * size_x)
+end subroutine copy2d
+
+end module kernel_mod
+
+program main
+  use cudafor
+  use kernel_mod
+  implicit none
+  integer istat, i, size_x, size_y, size_all
+  integer, allocatable, dimension(:) :: h_in, h_out
+  integer, allocatable, dimension(:), device :: d_in, d_out
+  integer success, first_index_error
+  type(dim3) :: blocksize, gridsize
+
+  size_x = 512
+  size_y = 512
+  size_all = size_x * size_y
+
+  !!host allocation
+  allocate(h_in(size_all))
+  allocate(h_out(size_all))
+
+
+  !!host initialization
+  do i=1,size_all
+    h_in(i) = 1
+    h_out(i) = -1
+  end do
+
+
+  !!GPU allocation
+  istat = cudaMalloc(d_in, size_all)
+  istat = cudaMalloc(d_out, size_all)
+
+
+  !!copy h_in in d_in and h_out in d_out
+  istat = cudaMemcpy(d_in, h_in, size_all, cudaMemcpyHostToDevice)
+  istat = cudaMemcpy(d_out, h_out, size_all, cudaMemcpyHostToDevice)
+
+
+  !!kernel
+  blocksize = dim3(32,32,1)
+  gridsize = dim3((size_x+blocksize%x-1)/blocksize%x &
+                 ,(size_y+blocksize%y-1)/blocksize%y &
+                 ,1)
+
+  call copy2d<<<gridsize, blocksize>>>(size_x, size_y, d_in, d_out)
+
+  !!copy d_out in h_out
+  istat = cudaMemcpy(h_out, d_out, size_all, cudaMemcpyDeviceToHost)
+
+  !!check resulst
+  success = 1
+  first_index_error = -1
+
+  do i=1,size_all
+    if(success == 1 .and. h_out(i) /= h_in(i)) then
+      success = 0
+      first_index_error = i
+      end if
+  end do
+
+
+  if(success == 1) then
+    write(*,*) 'SUCCESS'
+  else
+!!    printf("ERROR: h_out[%d]=%d expected %d\n",first_index_error,h_out[first_index_error], h_in[first_index_error])
+    write(*,*) 'ERROR: h_out(',first_index_error,')=', h_out(first_index_error) &
+             , ' expected ', h_in(first_index_error)
+  end if
+
+
+  !!free GPU
+  istat = cudaFree(d_in )
+  istat = cudaFree(d_out)
+
+  !!free host
+  deallocate(h_in )
+  deallocate(h_out)
+
+end program main

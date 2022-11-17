@@ -1,0 +1,47 @@
+
+1) Compile two_stream.cuf
+     generate a trace with nvprof and look at it with nvvp
+
+
+2) Add a call to cudaDeviceSynchronize before t1
+     compile
+     generate a trace with nvprof and look at it with nvvp (use an other name for the trace)
+
+
+3) Comment the call to cudaDeviceSynchronize
+   Add a call to cudaStreamSynchronize to synchronize stream(1) before t1
+     compile
+     generate a trace with nvprof and look at it with nvvp (use an other name for the trace)
+
+
+
+
+
+Pinned memory allocation :: allocatable + pinned keyword
+
+
+integer(kind=cuda_stream_kind) :: stream
+
+
+integer function cudaStreamCreate( stream )
+ integer(kind=cuda_stream_kind), intent(out) :: stream
+
+
+integer function cudaStreamDestroy( stream )
+ integer(kind=cuda_stream_kind), intent(in) :: stream
+
+
+integer function cudaDeviceSynchronize()
+
+
+integer function cudaStreamSynchronize( stream )
+ integer(kind=cuda_stream_kind), intent(in) :: stream
+
+
+integer function cudaMemcpyAsync(dst, src, count, kdir, stream)
+
+
+<<< type(dim3) Dg, type(dim3) Db, integer Ns, integer(kind=cuda_stream_kind) stream >>>
+
+
+

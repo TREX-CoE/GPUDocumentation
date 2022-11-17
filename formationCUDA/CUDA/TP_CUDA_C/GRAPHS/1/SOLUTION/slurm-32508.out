@@ -1,0 +1,65 @@
+nvcc: NVIDIA (R) Cuda compiler driver
+Copyright (c) 2005-2018 NVIDIA Corporation
+Built on Sat_Aug_25_21:08:01_CDT_2018
+Cuda compilation tools, release 10.0, V10.0.130
+Iteration 1
+Success! elapsed 0.0489604
+
+real	0m0.370s
+user	0m0.065s
+sys	0m0.284s
+Success! elapsed 0.0380783
+
+real	0m0.334s
+user	0m0.059s
+sys	0m0.271s
+Graph created
+Success! elapsed 0.0709288
+
+real	0m0.366s
+user	0m0.075s
+sys	0m0.288s
+Iteration 2
+Success! elapsed 0.0490011
+
+real	0m0.344s
+user	0m0.069s
+sys	0m0.271s
+Success! elapsed 0.0379975
+
+real	0m0.333s
+user	0m0.062s
+sys	0m0.268s
+Graph created
+Success! elapsed 0.0709393
+
+real	0m0.367s
+user	0m0.082s
+sys	0m0.281s
+Iteration 3
+Success! elapsed 0.0490104
+
+real	0m0.344s
+user	0m0.072s
+sys	0m0.269s
+Success! elapsed 0.0380977
+
+real	0m0.333s
+user	0m0.060s
+sys	0m0.270s
+Graph created
+Success! elapsed 0.0709648
+
+real	0m0.366s
+user	0m0.074s
+sys	0m0.289s
+==17838== NVPROF is profiling process 17838, command: ./main
+Success! elapsed 0.0568536
+==17838== Generated result file: /home_nfs/bkarlshoeferp/gpgpu/gpgpu/CUDA/Graphs/1/SOLUTION/prof_main.nvvp
+==17855== NVPROF is profiling process 17855, command: ./main_1
+Success! elapsed 0.0395107
+==17855== Generated result file: /home_nfs/bkarlshoeferp/gpgpu/gpgpu/CUDA/Graphs/1/SOLUTION/prof_main_1.nvvp
+==17876== NVPROF is profiling process 17876, command: ./main_g
+Graph created
+Success! elapsed 0.0836908
+==17876== Generated result file: /home_nfs/bkarlshoeferp/gpgpu/gpgpu/CUDA/Graphs/1/SOLUTION/prof_main_g.nvvp

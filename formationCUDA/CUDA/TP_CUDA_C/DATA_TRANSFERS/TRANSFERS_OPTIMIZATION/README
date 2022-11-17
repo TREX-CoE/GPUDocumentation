@@ -1,0 +1,27 @@
+
+Copy nBody_a_square_omp.c in nBody_a_square.cu
+
+
+1) Port update_velocity on GPU:
+       -allocate data on device
+       -copy data on device
+       -call a kernel to update data on device
+       -copy data from device to host
+       -free data on device
+
+2) Analyze data movement and then minimize data transfers
+
+
+3) Port update_position on GPU
+
+
+4) Analyze data movement and then minimize data transfers
+
+
+#define CUDA_SAFE_CALL(call) { gpuAssert((call), __FILE__, __LINE__); }
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=false){
+   if (code != cudaSuccess){
+      fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+      if (abort) exit(code);
+   }
+}

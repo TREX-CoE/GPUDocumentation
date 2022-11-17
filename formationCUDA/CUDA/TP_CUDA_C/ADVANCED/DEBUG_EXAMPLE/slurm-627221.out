@@ -1,0 +1,31 @@
+bad_sample.cu(12): warning: variable "b" was declared but never referenced
+
+10 
+0 
+========= CUDA-MEMCHECK
+========= Invalid __global__ write of size 4
+=========     at 0x00000110 in /olympe2/invite/hoffer/CUDA/TP_CUDA_C/ADVANCED/DEBUG_EXAMPLE/bad_sample.cu:11:bad_kernel(int*)
+=========     by thread (0,0,0) in block (0,0,0)
+=========     Address 0x2b50904000a8 is out of bounds
+=========     Device Frame:/olympe2/invite/hoffer/CUDA/TP_CUDA_C/ADVANCED/DEBUG_EXAMPLE/bad_sample.cu:11:bad_kernel(int*) (bad_kernel(int*) : 0x110)
+=========     Saved host backtrace up to driver entry point at kernel launch time
+=========     Host Frame:/lib64/libcuda.so.1 (cuLaunchKernel + 0x34e) [0x2e46de]
+=========     Host Frame:./prog [0x10689]
+=========     Host Frame:./prog [0x10717]
+=========     Host Frame:./prog [0x46a65]
+=========     Host Frame:./prog [0x37d5]
+=========     Host Frame:./prog [0x362a]
+=========     Host Frame:./prog [0x3644]
+=========     Host Frame:./prog [0x3382]
+=========     Host Frame:/lib64/libc.so.6 (__libc_start_main + 0xf5) [0x22555]
+=========     Host Frame:./prog [0x3179]
+=========
+========= Program hit cudaErrorLaunchFailure (error 719) due to "unspecified launch failure" on CUDA API call to cudaMemcpy. 
+=========     Saved host backtrace up to driver entry point at error
+=========     Host Frame:/lib64/libcuda.so.1 [0x3fcba3]
+=========     Host Frame:./prog [0x30ccf]
+=========     Host Frame:./prog [0x339c]
+=========     Host Frame:/lib64/libc.so.6 (__libc_start_main + 0xf5) [0x22555]
+=========     Host Frame:./prog [0x3179]
+=========
+========= ERROR SUMMARY: 2 errors

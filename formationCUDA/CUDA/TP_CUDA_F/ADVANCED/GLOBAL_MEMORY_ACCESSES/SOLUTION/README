@@ -1,0 +1,151 @@
+
+1) Complete the file global_access_offset.cu:
+	explore with different values for offset
+        for OFFSET in `seq 0 33`;do ./binary  ${OFFSET}; done; 
+
+
+2) Complete the file global_access_stride.cu:
+        explore with different values for stride
+        for STRIDE in `seq 1 32`;do ./binary  ${STRIDE}; done;
+
+
+
+--------------------------------------------
+Basic Management
+--------------------------------------------
+
+integer function cudaMalloc(devptr, count)
+
+  Parameters:
+  devPtr 	- Pointer to allocated device memory
+  count  	- Requested allocation size in number of elements
+
+
+
+integer function cudaMemcpy(dst, src, count, kind)
+    				 
+  Parameters:
+  dst	- Destination memory address
+  src 	- Source memory address
+  count - Size in number of elements to copy
+  kind 	- Type of transfer: cudaMemcpyHostToHost, cudaMemcpyHostToDevice, cudaMemcpyDeviceToHost, or cudaMemcpyDeviceToDevice
+
+
+integer cudaFree( devPtr )	
+
+  Parameters:
+  devPtr	- Device pointer to memory to free
+
+
+attributes(global)   declares kernel, which is called on host and executed on device
+attributes(device)   declares device function, which is called and executed on device
+attributes(host)     declares host function, which is called and executed on host
+
+
+dim3 : integer vector type
+  type(dim3) value = dim3( nx, ny, nz )
+  type(dim3) value 
+  value%x = nx
+  value%y = ny
+  value%z = nz
+  
+
+call kernelName<<< blocksInGrid, threadsPerBlock >>>(args, ... )
+
+
+
+Pre-defined variables
+ gridDim  	dimensions of grid
+ blockDim 	dimensions of block
+ blockIdx 	block index within grid
+ threadIdx	thread index within block
+
+
+
+
+Declaring variables
+attributes(device)  	declares device variable in global memory, accessible from all threads, with lifetime of application
+attributes(constant)	declares device variable in constant memory, accessible from all threads, with lifetime of application
+attributes(shared)  	declares device varibale in block's shared memory, accessible from all threads within a block, with lifetime of block
+
+
+--------------------------------------------
+Event Management
+--------------------------------------------
+
+integer function cudaEventCreate( event )
+ type(cudaEvent), intent(out) :: event
+
+  event  - Newly created event
+
+
+integer function cudaEventCreateWithFlags( event, flags )
+ type(cudaEvent), intent(out) :: event
+ integer :: flags
+
+  event- Newly created event
+  flags- Flags for new event:
+
+    cudaEventDefault: Default event creation flag.
+
+    cudaEventBlockingSync: Specifies that event should use blocking synchronization.
+                           A host thread that uses cudaEventSynchronize() to wait on
+                           an event created with this flag will block until the event actually completes.
+
+    cudaEventDisableTiming: Specifies that the created event does not need to record timing data.
+                            Events created with this flag specified and the cudaEventBlockingSync flag
+                            not specified will provide the best performance when used with 
+                            cudaStreamWaitEvent() and cudaEventQuery().
+
+
+integer function cudaEventDestroy( event )
+ type(cudaEvent), intent(in) :: event
+
+  event - Event to destroy
+
+
+integer function cudaEventElapsedTime( time, start, end)
+ real :: time
+ type(cudaEvent), intent() :: start, end
+
+  Computes the elapsed time between events.
+
+  Parameters
+  time     - Time between start and end in ms
+  start  - Starting event
+  end    - Ending event
+
+
+integer function cudaEventQuery( event )
+ type(cudaEvent), intent(in) :: event
+
+  Queries an event's status.
+  
+  Parameters
+  event   - Event to query
+
+
+
+nteger function cudaEventRecord( event, stream )
+ type(cudaEvent), intent(in) :: event
+ integer, intent(in) :: stream
+
+  Records an event.
+
+  Parameters
+  event   - Event to record
+  stream  - Stream in which to record event
+
+
+nteger function cudaEventSynchronize( event )
+ type(cudaEvent), intent(in) :: event
+
+  Waits for an event to complete.
+  
+  Parameters
+  event  - Event to wait for
+
+
+
+
+

@@ -1,0 +1,44 @@
+Use two different streams to perform copies and kernel launches:
+
+  one stream to:
+    copy h_array1 in d_array1 asynchronously
+    launch myKernel on d_array1 
+    copy d_array1 in h_array1 asynchronously
+
+  an other stream to:
+    copy h_array2 in d_array2 asynchronously
+    launch myKernel on d_array2
+    copy d_array2 in h_array2 asynchronously
+
+
+Create a profile trave with nvprof: « nvprof --export-profile profile.nvvp ./bin »
+
+
+Read the profile using nvvp
+
+
+
+
+
+
+
+cudaStream_t stream
+
+cudaStreamCreate(cudaStream_t *stream)
+
+cudaStreamDestroy(cudaStream_t stream)
+
+cudaDeviceSynchronize()
+
+cudaStreamSynchronize(cudaStream_t stream)
+
+cudaError_t cudaMemcpyAsync( void *dst, const void *src, size_t count, enum cudaMemcpyKind kind, cudaStream_t stream)
+
+<<< dim3 Dg, dim3 Db, size_t Ns, cudaStream_t stream >>>
+
+
+
+
+
+
+

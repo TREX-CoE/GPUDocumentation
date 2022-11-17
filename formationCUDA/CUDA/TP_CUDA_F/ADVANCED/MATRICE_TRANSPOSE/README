@@ -1,0 +1,17 @@
+1) complete copy2d.cu
+
+2) copy copy2d.cu into transpose_global.cu
+   modify transpose_global.cu to perform a matrice transposition
+
+3) complete transpose_block.cu to perform a matrice transposition by block
+
+4) in transpose_block.cu, use shared memory as indermediate buffer for the transposition by block
+
+5) complete transpose_shared.cu to perform a full transposition using shared memory
+
+6) complete bank.cu
+
+7) optimize bank.cu
+
+8) optimize transpose_shared.cu
+

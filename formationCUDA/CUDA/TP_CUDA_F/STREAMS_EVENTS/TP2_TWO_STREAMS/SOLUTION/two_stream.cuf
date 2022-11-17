@@ -1,0 +1,117 @@
+! vim: ft=fortran :
+! compile with pgfortran main.cuf
+
+module kernel_mod
+contains
+attributes(global) subroutine  myKernel(size, d_i)
+  implicit none
+  integer, value :: size
+  integer, dimension(:) :: d_i
+
+  integer tid, loop
+
+  tid = threadIdx%x + (blockIdx%x - 1) * blockDim%x
+  if( tid <= size) then
+    do loop=0,9999
+      d_i(tid) = d_i(tid) + (tid-1) + loop
+    enddo
+  endif
+
+end subroutine myKernel
+end module kernel_mod
+
+
+
+program main
+  use cudafor
+  use kernel_mod
+  use iso_c_binding
+
+  implicit none
+
+  interface
+      function wallclock() bind(C)
+        use iso_c_binding
+        real(C_DOUBLE) :: wallclock
+      end function wallclock
+  end interface
+
+  integer istat, size
+  real(C_DOUBLE) :: t0, t1, t2, t3
+  integer, allocatable, dimension(:), pinned :: h_array1, h_array2
+  integer, allocatable, dimension(:), device :: d_array1, d_array2
+  type(dim3) :: threadsPerBlock, nbBlocks
+  
+  integer(kind=cuda_stream_kind) :: stream(2)
+
+  size = 100000000
+  
+  !!pinned allocation and initialization on the host
+  allocate(h_array1(size), stat=istat)
+  allocate(h_array2(size), stat=istat)
+
+  h_array1 = 0
+  h_array2 = 0
+
+
+  !!stream creation
+  istat = cudaStreamCreate( stream(1) )
+  istat = cudaStreamCreate( stream(2) )
+
+
+  !!set grid
+  threadsPerBlock = dim3(256,1,1)
+  nbBlocks = dim3( (size + threadsPerBlock%x -1) / threadsPerBlock%x, 1, 1)
+
+
+  !!allocation on the device
+  istat = cudaMalloc(d_array1, size)
+  istat = cudaMalloc(d_array2, size)
+
+  
+  t0 = wallclock()
+
+  !!do an async copy of h_array1 in d_array1 in the stream(1)
+  istat = cudaMemcpyAsync(d_array1, h_array1, size, cudaMemcpyHostToDevice, stream(1))
+  !!call myKernel with the stream(1)
+  call myKernel<<< nbBlocks, threadsPerBlock, 0, stream(1) >>>(size, d_array1)
+  !!do an async copy of d_array1 in h_array1 in the stream(1)
+  istat = cudaMemcpyAsync(h_array1, d_array1, size, cudaMemcpyDeviceToHost, stream(1))
+
+  t1  = wallclock()
+
+  !!do an async copy of h_array2 in d_array2 in the stream(2)
+  istat = cudaMemcpyAsync(d_array2, h_array2, size, cudaMemcpyHostToDevice, stream(2))
+  !!call myKernel with the stream(2)
+  call myKernel<<< nbBlocks, threadsPerBlock, 0, stream(2) >>>(size, d_array2)
+  !!do an async copy of d_array2 in h_array2 in the stream(2)
+  istat = cudaMemcpyAsync(h_array2, d_array2, size, cudaMemcpyDeviceToHost,  stream(2))
+
+  t2  = wallclock()
+
+  !!Synchronize device before stream destruction
+  istat = cudaDeviceSynchronize()
+
+  !!stream destruction
+  istat = cudaStreamDestroy(stream(1))
+  istat = cudaStreamDestroy(stream(2))
+
+  t3  = wallclock()
+
+
+  !!print the result
+  print *, "value: ", h_array1(51)
+  print *, "t1-t0: ", t1-t0
+  print *, "t2-t1: ", t2-t1
+  print *, "t3-t2: ", t3-t2
+  print *, "t1-t0: ", t3-t0
+
+
+  !!free device and host memory
+  istat = cudaFree(d_array1)
+  istat = cudaFree(d_array2)
+  deallocate(h_array1)
+  deallocate(h_array2)
+
+
+end program main

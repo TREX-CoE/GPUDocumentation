@@ -1,0 +1,134 @@
+
+1) Complete the file global_access_offset.cu:
+	explore with different values for offset
+        for OFFSET in `seq 0 33`;do ./binary  ${OFFSET}; done; 
+
+
+2) Complete the file global_access_stride.cu:
+        explore with different values for stride
+        for STRIDE in `seq 1 32`;do ./binary  ${STRIDE}; done;
+
+
+
+--------------------------------------------
+Basic Management
+--------------------------------------------
+
+cudaError_t cudaMalloc( void ** devPtr, size_t  size )
+
+  Parameters:
+  devPtr        - Pointer to allocated device memory
+  size          - Requested allocation size in bytes
+
+
+
+cudaError_t cudaMemcpy( void *dst, const void *src, size_t count, enum cudaMemcpyKind kind )
+
+  Parameters:
+  dst   - Destination memory address
+  src   - Source memory address
+  count - Size in bytes to copy
+  kind  - Type of transfer: cudaMemcpyHostToHost, cudaMemcpyHostToDevice, cudaMemcpyDeviceToHost, or cudaMemcpyDeviceToDevice
+
+
+
+cudaError_t cudaFree( void *devPtr )
+
+  Parameters:
+  devPtr        - Device pointer to memory to free
+
+
+
+__global__   declares kernel, which is called on host and executed on device
+__device__   declares device function, which is called and executed on device
+__host__     declares host function, which is called and executed on host
+
+
+dim3 : integer vector type
+  dim3 value( nx, ny, nz );
+  dim3 value;
+  value.x = nx;
+  value.y = ny;
+  value.z = nz;
+
+
+kernelName<<< blocksInGrid, threadsPerBlock >>>(args, ... );
+
+
+Pre-defined variables
+ gridDim        dimensions of grid
+ blockDim       dimensions of block
+ blockIdx       block index within grid
+ threadIdx      thread index within block
+
+
+--------------------------------------------
+Event Management
+--------------------------------------------
+
+cudaError_t cudaEventCreate ( cudaEvent_t* event )
+  event  - Newly created event
+
+
+
+cudaError_t cudaEventCreateWithFlags ( cudaEvent_t* event, unsigned int  flags )
+  Parameters
+  event- Newly created event
+  flags- Flags for new event:
+
+    cudaEventDefault: Default event creation flag.
+
+    cudaEventBlockingSync: Specifies that event should use blocking synchronization.
+                           A host thread that uses cudaEventSynchronize() to wait on
+                           an event created with this flag will block until the event actually completes.
+
+    cudaEventDisableTiming: Specifies that the created event does not need to record timing data.
+                            Events created with this flag specified and the cudaEventBlockingSync flag
+                            not specified will provide the best performance when used with 
+                            cudaStreamWaitEvent() and cudaEventQuery().
+
+
+
+cudaError_t cudaEventDestroy ( cudaEvent_t event )
+  Parameters
+  event - Event to destroy
+
+
+
+cudaError_t cudaEventElapsedTime ( float* ms, cudaEvent_t start, cudaEvent_t end )
+  Computes the elapsed time between events.
+
+  Parameters
+  ms     - Time between start and end in ms
+  start  - Starting event
+  end    - Ending event
+
+
+
+cudaError_t cudaEventQuery ( cudaEvent_t event )
+  Queries an event's status.
+  
+  Parameters
+  event   - Event to query
+
+
+
+cudaError_t cudaEventRecord ( cudaEvent_t event, cudaStream_t stream = 0 )
+  Records an event.
+
+  Parameters
+  event   - Event to record
+  stream  - Stream in which to record event
+
+
+
+cudaError_t cudaEventSynchronize ( cudaEvent_t event )
+  Waits for an event to complete.
+  
+  Parameters
+  event  - Event to wait for
+
+
+
+
+

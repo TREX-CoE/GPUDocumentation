@@ -1,0 +1,5 @@
+olympevolta0
+==47252== NVPROF is profiling process 47252, command: ./main
+==47252== Error: File already exists: /olympe2/invite/hoffer/CUDA/TP_CUDA_C/STREAMS_EVENTS/TP3_STREAM_SYNCHRONIZATION/prof_v1
+==47252== Use "-f" to overwrite existing file
+done

@@ -1,0 +1,115 @@
+! vim: ft=fortran :
+! compile with pgfortran main.cuf
+
+module kernel_mod
+contains
+attributes(global) subroutine  myKernel(size, d_i)
+  implicit none
+  integer, value :: size
+  integer, dimension(:) :: d_i
+
+  integer tid, loop
+
+  tid = threadIdx%x + (blockIdx%x - 1) * blockDim%x
+  if( tid <= size) then
+    do loop=0,9999
+      d_i(tid) = d_i(tid) + (tid-1) + loop
+    enddo
+  endif
+
+end subroutine myKernel
+end module kernel_mod
+
+
+
+program main
+  use cudafor
+  use kernel_mod
+  use iso_c_binding
+
+  implicit none
+
+  interface
+      function wallclock() bind(C)
+        use iso_c_binding
+        real(C_DOUBLE) :: wallclock
+      end function wallclock
+  end interface
+
+
+
+  integer istat, size
+  real(C_DOUBLE) :: t0, t1, t2, t3, t4, t5
+  integer, allocatable, dimension(:) :: h_i, h_c
+  integer, allocatable, dimension(:), device :: d_a, d_b, d_c, d_i
+  type(dim3) :: threadsPerBlock, nbBlocks
+
+  size = 100000000
+
+  !!allocation and initialization on the host
+  allocate(h_i(size), stat=istat)
+  allocate(h_c(100), stat=istat)
+
+  h_i = 0
+  h_c = 0
+
+
+  threadsPerBlock = dim3(256,1,1)
+  nbBlocks = dim3( (size + threadsPerBlock%x -1) / threadsPerBlock%x, 1, 1)
+
+  !!allocation on the device
+  istat = cudaMalloc(d_a, size)
+  istat = cudaMalloc(d_b, size)
+  istat = cudaMalloc(d_c,  100)
+  istat = cudaMalloc(d_i, size)
+
+  t0 = wallclock()
+
+  !!copy h_i in d_i
+  istat = cudaMemcpy(d_i, h_i, size, cudaMemcpyHostToDevice)
+
+
+  t1 = wallclock()
+
+  !!copy h_c in d_c
+  istat = cudaMemcpy(d_c, h_c, 100, cudaMemcpyHostToDevice)
+
+
+  t2 = wallclock()
+
+  !!copy d_b in d_a
+  istat = cudaMemcpy(d_a, d_b, size, cudaMemcpyDeviceToDevice)
+
+
+  t3 = wallclock()
+
+  !!call mykernel using nbBlocks and threadsPerBlock for the grid and size and d_i as parameters
+  call myKernel<<< nbBlocks, threadsPerBlock >>>(size, d_i)
+
+  t4  = wallclock()
+
+  !!copy d_i in h_i
+  istat = cudaMemcpy(h_i, d_i, size, cudaMemcpyDeviceToHost)
+
+  t5  = wallclock()
+
+  !!print the result
+  print *, "value: ", h_i(51)
+  print *, "h_i->d_i: ", t1-t0
+  print *, "h_c->d_c: ", t2-t1
+  print *, "d_a->d_b: ", t3-t2
+  print *, "myKernel: ", t4-t3
+  print *, "d_i->h_i: ", t5-t4
+  print *, "t4-t1:    ", t4-t1
+
+
+  !!free device and host memory
+  istat = cudaFree(d_a)
+  istat = cudaFree(d_b)
+  istat = cudaFree(d_c)
+  istat = cudaFree(d_i)
+  deallocate(h_c)
+  deallocate(h_i)
+
+
+end program main

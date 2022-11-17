@@ -1,0 +1,29 @@
+
+Compile the previous file with --default-stream per-thread
+
+Create a profile trace with nvprof: « nvprof --export-profile profile.nvvp ./bin »
+
+Read the profile using nvvp
+
+
+
+
+cudaStream_t stream
+
+cudaStreamCreate(cudaStream_t *stream)
+
+cudaStreamDestroy(cudaStream_t stream)
+
+cudaDeviceSynchronize()
+
+cudaStreamSynchronize(cudaStream_t stream)
+
+cudaError_t cudaMemcpyAsync( void *dst, const void *src, size_t count, enum cudaMemcpyKind kind, cudaStream_t stream)
+
+<<< dim3 Dg, dim3 Db, size_t Ns, cudaStream_t stream >>>
+
+
+
+
+
+

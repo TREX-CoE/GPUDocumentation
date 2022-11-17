@@ -1,0 +1,99 @@
+! vim: ft=fortran :
+! compile with pgfortran main.cuf
+
+module kernel_mod
+contains
+attributes(global) subroutine  add2d(size_x, size_y, d_a, d_b, d_c)
+  implicit none
+  integer, value ::  size_x, size_y
+  integer, dimension(:) :: d_a, d_b, d_c
+  integer tx, ty
+
+  tx = threadIdx%x + (blockIdx%x - 1) * blockDim%x
+  ty = threadIdx%y + (blockIdx%y - 1) * blockDim%y
+  if(tx <= size_x .and. ty <= size_y) &
+    d_c(tx + (ty-1)*size_x) = d_b(tx+(ty-1)*size_x) + d_a(tx+(ty-1)*size_x)
+end subroutine add2d
+end module kernel_mod
+
+
+
+program main
+  use cudafor
+  use kernel_mod
+  implicit none
+  integer istat, i, success, first_index_error
+  integer, allocatable, dimension(:) :: h_a, h_b, h_c
+  integer, allocatable, dimension(:), device :: d_a, d_b, d_c
+  type(dim3) :: threadsPerBlock, nbBlocks
+  integer size_x, size_y, size_all
+
+  size_x = 64
+  size_y = 8
+  size_all = size_x * size_y
+
+  !!allocation and initialization on the host
+  allocate(h_a(size_all), stat=istat)
+  allocate(h_b(size_all), stat=istat)
+  allocate(h_c(size_all), stat=istat)
+
+  do i=1,size_all
+    h_a(i) = i
+    h_b(i) = 2*i
+    h_c(i) = 0
+  end do
+
+
+  !!allocation on the device
+  istat = cudaMalloc(d_a, size_all)
+  istat = cudaMalloc(d_b, size_all)
+  istat = cudaMalloc(d_c, size_all)
+
+
+  !!inialization on the device (copy of the host value)
+  istat = cudaMemcpy(d_a, h_a, size_all, cudaMemcpyHostToDevice)
+  istat = cudaMemcpy(d_b, h_b, size_all, cudaMemcpyHostToDevice)
+
+  threadsPerBlock = dim3(32,4,1)
+  nbBlocks = dim3((size_x+threadsPerBlock%x-1)/threadsPerBlock%x &
+                 ,(size_y+threadsPerBlock%y-1)/threadsPerBlock%y &
+                 ,1)
+
+
+  call add2d<<< nbBlocks, threadsPerBlock >>>(size_x, size_y, d_a, d_b, d_c)
+
+
+  !!copy the value of d_c in h_c
+  istat = cudaMemcpy(h_c, d_c, size_all, cudaMemcpyDeviceToHost)
+
+
+  !!print the result
+  success = 1
+  first_index_error = -1
+
+  do i=1,size_all
+    if(success == 1 .and. h_c(i) /= 3*i) then
+      success = 0
+      first_index_error = i
+      end if
+  end do
+
+
+  if(success == 1) then
+    write(*,*) 'SUCCESS'
+  else
+    !!printf("ERROR: h_c(%d) = %d expected %d\n",first_index_error, h_c(first_index_error), first_index_error + first_index_error%4 )
+    write(*,*) 'ERROR', first_index_error, h_c(first_index_error), &
+    3*first_index_error
+  end if
+
+
+  !!free device and host memory
+  istat = cudaFree(d_a)
+  istat = cudaFree(d_b)
+  istat = cudaFree(d_c)
+  deallocate(h_a)
+  deallocate(h_b)
+  deallocate(h_c)
+
+end program main

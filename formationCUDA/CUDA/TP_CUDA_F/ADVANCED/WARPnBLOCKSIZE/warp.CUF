@@ -1,0 +1,110 @@
+! vim: ft=fortran :
+! compile with pgfortran main.cuf
+!!warp
+#define WARPSIZE 32
+
+module kernel_mod
+  implicit none
+contains
+
+attributes(global) subroutine  mykernel(size_x, size_y, d_in, d_out)
+  implicit none
+  integer, value :: size_x, size_y
+  integer, dimension(:) :: d_in, d_out
+  integer tx, ty, idx, idy, threadID, threadrank_inwarp
+
+  tx = threadIdx%x
+  ty = threadIdx%y
+
+  idx = threadIdx%x + (blockIdx%x - 1) * blockDim%x
+  idy = threadIdx%y + (blockIdx%y - 1) * blockDim%y
+  !!complete to have the thread ID
+  threadID = ...
+
+  !!complete to have the thread rank inside its warp
+  threadrank_inwarp = ...
+
+  if(idx <= size_x .and. idy <= size_y) &
+    d_out(idx + (idy-1)*size_x) = threadrank_inwarp
+end subroutine mykernel
+
+end module kernel_mod
+
+
+
+program main
+  use cudafor
+  use kernel_mod
+  implicit none
+  integer istat, i, j, block_size_x, block_size_y
+  integer size_x, size_y, size_all
+  character(len=32) :: arg1
+
+  integer, allocatable, dimension(:) :: h_in, h_out
+  integer, allocatable, dimension(:), device :: d_in, d_out
+  type(dim3) :: dimBlock, dimGrid
+
+  block_size_x = 64
+  block_size_y = 4
+
+  if (command_argument_count() == 2) then
+    call get_command_argument(1, arg1)
+    read(arg1, '(i4)') block_size_x
+    call get_command_argument(2, arg1)
+    read(arg1, '(i4)') block_size_y
+
+    if(block_size_x*block_size_y > 1024) then
+      print*, "Error block_size_x * block_size_y must be lower or equal to 1024"
+      call exit(1)
+    end if
+  end if
+
+  print*, "BLOCK SIZE X:", block_size_x
+  print*, "BLOCK SIZE Y:", block_size_y
+  print*, ""
+
+  size_x = 256
+  size_y = 32
+  size_all = size_x * size_y
+
+  allocate(h_in(size_all))
+  allocate(h_out(size_all))
+
+  do i=0, size_all
+    h_in(i) = i
+    h_out(i) = 0
+  end do
+
+  !! CUDA PART
+  istat = cudaMalloc(d_in, size_all)
+  istat = cudaMalloc(d_out, size_all)
+
+  istat = cudaMemcpy(d_in, h_in, size_all, cudaMemcpyHostToDevice)
+  
+
+  dimBlock = dim3(block_size_x,block_size_y,1)
+  dimGrid = dim3((size_x+dimBlock%x-1)/dimBlock%x &
+                ,(size_y+dimBlock%y-1)/dimBlock%y &
+                ,1)
+
+  
+  call mykernel<<<dimGrid,dimBlock>>>(size_x, size_y, d_in ,d_out)
+  
+  istat = cudaMemcpy(h_out, d_out, size_all, cudaMemcpyDeviceToHost)
+
+  !! print the first 32 columns
+  do j=1, size_y
+    do i=1, 32
+      write(*, '(i3x$)'), h_out(i + (j-1)*size_x)
+    end do
+    write(*,'()')
+  end do
+
+  istat = cudaFree(d_in);
+  istat = cudaFree(d_out);
+  
+  deallocate(h_in);
+  deallocate(h_out);
+end program main
+
+

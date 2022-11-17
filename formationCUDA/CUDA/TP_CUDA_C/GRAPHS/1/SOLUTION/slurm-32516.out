@@ -1,0 +1,55 @@
+nvcc: NVIDIA (R) Cuda compiler driver
+Copyright (c) 2005-2018 NVIDIA Corporation
+Built on Sat_Aug_25_21:08:01_CDT_2018
+Cuda compilation tools, release 10.0, V10.0.130
+Iteration 1
+Success! elapsed 0.0491768
+
+real	0m0.366s
+user	0m0.063s
+sys	0m0.289s
+Success! elapsed 0.0380669
+
+real	0m0.337s
+user	0m0.066s
+sys	0m0.268s
+Success! elapsed 0.0354128
+
+real	0m0.334s
+user	0m0.057s
+sys	0m0.274s
+Iteration 2
+Success! elapsed 0.049307
+
+real	0m0.348s
+user	0m0.073s
+sys	0m0.271s
+Success! elapsed 0.0379927
+
+real	0m0.337s
+user	0m0.061s
+sys	0m0.273s
+Success! elapsed 0.0354307
+
+real	0m0.335s
+user	0m0.058s
+sys	0m0.274s
+Iteration 3
+Success! elapsed 0.0491287
+
+real	0m0.347s
+user	0m0.069s
+sys	0m0.275s
+Success! elapsed 0.0380098
+
+real	0m0.336s
+user	0m0.059s
+sys	0m0.270s
+Success! elapsed 0.0354079
+
+real	0m0.334s
+user	0m0.055s
+sys	0m0.277s
+==23577== NVPROF is profiling process 23577, command: ./main_g
+Success! elapsed 0.0415711
+==23577== Generated result file: /home_nfs/bkarlshoeferp/gpgpu/gpgpu/CUDA/Graphs/1/SOLUTION/prof_main_g.nvvp

@@ -1,0 +1,110 @@
+! vim: ft=fortran :
+! compile with pgfortran main.cuf
+
+module kernel_mod
+  implicit none
+
+contains
+
+!!Complete the kernel
+attributes(global) subroutine  mykernel(size, offset, d_in, d_out)
+  implicit none
+  integer, value :: size, offset
+  real, dimension(:) :: d_in, d_out
+  integer tid
+
+  tid = ...
+  
+  if(tid <= size) &
+    !!1D acces + offset
+    d_out(...) = d_in(...)
+end subroutine mykernel
+end module kernel_mod
+
+
+program main
+  use cudafor
+  use kernel_mod
+  implicit none
+  character(len=32) :: arg1
+  integer istat, size, offset, i
+  real, allocatable, dimension(:) :: h_in, h_out
+  real, allocatable, dimension(:), device :: d_in, d_out
+  real  :: cpucoeff(4)
+  real, allocatable, dimension(:), device :: d_coef
+  type(dim3) :: threadsPerBlock, numBlocks
+  type(cudaEvent) :: startEvent, stopEvent
+  real elapsedTime
+
+
+  offset = 0
+
+  if (command_argument_count() == 1) then
+    call get_command_argument(1, arg1)
+    read(arg1, '(i4)') offset
+    if(offset < 0 .or. offset > 256) then
+      print*, "Error offset must be > 0 and < 256"
+      call exit(1)
+    end if
+  end if
+
+
+  !! 100 000 256
+  size = 100000256
+
+  !!allocation and initialization on the host
+  allocate(h_in(size))
+  allocate(h_out(size))
+
+  do i=1,size
+    h_in(i) = i
+    h_out(i) = 0
+  end do
+
+  threadsPerBlock = dim3(256,1,1)
+  numBlocks = dim3((size+threadsPerBlock%x-1)/threadsPerBlock%x,1,1)
+
+
+  !!allocation on the device
+  istat = cudaMalloc(d_in, size)
+  istat = cudaMalloc(d_out, size)
+
+
+  !!inialization on the device (copy of the host value)
+  istat = cudaMemcpy(...)
+  istat = cudaMemcpy(...)
+
+  !!create two events for timing
+  ...
+  
+  !!first time measure
+  ...
+
+  !!launch mykernel
+  ...
+
+  !!second time measure
+  ...
+  
+  !!synchronize and compute the elasped time between the two events
+  ...
+
+  print *, "offset: ", offset, "time: ", elapsedTime
+
+
+  !!copy the value of d_i in h_i
+  istat = cudaMemcpy(h_out, d_out, size, cudaMemcpyDeviceToHost)
+
+
+  !!print a result
+  !!print*, "value: ", h_out[50]
+
+
+  !!free device and host memory
+  istat = cudaFree(d_in )
+  istat = cudaFree(d_out)
+  deallocate(h_in)
+  deallocate(h_out)
+
+
+end program main

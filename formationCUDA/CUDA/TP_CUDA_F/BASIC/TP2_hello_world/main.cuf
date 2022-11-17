@@ -1,0 +1,43 @@
+! vim: ft=fortran :
+! compile with pgfortran main.cuf
+
+... subroutine  mykernel()
+use iso_fortran_env, only : stdout => output_unit
+  implicit none
+  write(stdout, '(a)') 'hello world!'
+end subroutine mykernel
+
+program main
+  use cudafor
+  use kernel_mod
+  implicit none
+  integer istat
+  ... blocksize, gridsize
+  ... blocksize2, gridsize2
+
+
+  !!define a grid of 1 blocks and a block size of 4 threads (all on the x dimension)
+  blocksize = ...
+  gridsize  = ...
+
+  write(*, '(a,3i3,a,3i3,a)') 'Grid: (',gridsize%x, gridsize%y, gridsize%z &
+                 , ') blocks. Block: (',blocksize%x, blocksize%y, blocksize%z &
+                 , ') threads'
+  
+  !!launch kernel execution
+  ...
+  istat = cudaDeviceSynchronize()
+
+  !!define a grid of 2 blocks and a block size of 4 threads (all on the x dimension)
+  blocksize2 = ...
+  gridsize2  = ...
+
+  write(*, '(a,3i3,a,3i3,a)') 'Grid: (',gridsize2%x, gridsize2%y, gridsize2%z &
+                 , ') blocks. Block: (',blocksize2%x, blocksize2%y, blocksize2%z &
+                 , ') threads'
+  
+  !!launch kernel execution
+  ...
+  istat = cudaDeviceSynchronize()
+
+end program main

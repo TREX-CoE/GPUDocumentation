@@ -1,0 +1,102 @@
+Complete main.cuf:
+
+  call myKernel_a in a stream
+  call myKernel_b then myKernel_c in an other stream (than the one used for myKernel_a)
+  ensure than myKernel_c start only after myKernel_a complete using event
+
+Generate a trace with nvprof
+  check that myKernel_c starts after mykernel_a
+
+
+
+
+
+
+
+Pinned memory allocation :: allocatable + pinned keyword
+
+
+integer(kind=cuda_stream_kind) :: stream
+
+
+integer function cudaStreamCreate( stream )
+ integer(kind=cuda_stream_kind), intent(out) :: stream
+
+
+integer function cudaStreamDestroy( stream )
+ integer(kind=cuda_stream_kind), intent(in) :: stream
+
+
+integer function cudaDeviceSynchronize()
+
+
+integer function cudaStreamSynchronize( stream )
+ integer(kind=cuda_stream_kind), intent(in) :: stream
+
+
+integer function cudaMemcpyAsync(dst, src, count, kdir, stream)
+
+
+<<< type(dim3) Dg, type(dim3) Db, integer Ns, integer(kind=cuda_stream_kind) stream >>>
+
+
+integer function cudaStreamCreateWithFlags( stream, flags )
+ integer(kind=cuda_stream_kind), intent(out) :: stream
+ integer, intent(in) :: flags       (cudaStreamDefault or cudaStreamNonBlocking)
+
+
+
+integer function cudaEventCreate( event )
+ type(cudaEvent), intent(out) :: event
+
+
+integer function cudaEventCreateWithFlags( event, flags )
+ type(cudaEvent), intent(out) :: event
+ integer :: flags     (cudaEventDisableTiming)
+
+
+integer function cudaEventRecord( event, stream )
+ type(cudaEvent), intent(in) :: event
+ integer, intent(in) :: stream
+
+
+integer function cudaEventDestroy( event )
+ type(cudaEvent), intent(in) :: event
+
+
+integer function cudaEventQuery( event )
+ type(cudaEvent), intent(in) :: event
+
+
+integer function cudaEventSynchronize( event )
+ type(cudaEvent), intent(in) :: event
+
+
+integer function cudaStreamWaitEvent( stream, event, flags )
+ integer(kind=cuda_stream_kind) :: stream
+ type(cudaEvent), intent(in) :: event
+ integer :: flags     (must be 0)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

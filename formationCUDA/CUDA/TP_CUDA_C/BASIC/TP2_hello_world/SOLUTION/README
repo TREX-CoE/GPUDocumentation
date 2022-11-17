@@ -1,0 +1,22 @@
+
+
+Complete the file main.cu
+
+
+
+__global__   declares kernel, which is called on host and executed on device
+__device__   declares device function, which is called and executed on device
+__host__     declares host function, which is called and executed on host
+
+
+dim3 : integer vector type
+  dim3 value( nx, ny, nz );
+  dim3 value; 
+  value.x = nx;
+  value.y = ny;
+  value.z = nz;
+  
+
+kernelName<<< blocksInGrid, threadsPerBlock >>>(args, ... );
+
+

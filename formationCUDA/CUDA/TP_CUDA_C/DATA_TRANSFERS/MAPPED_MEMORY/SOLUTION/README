@@ -1,0 +1,14 @@
+Complete main.cu
+
+
+
+
+
+
+cudaGetDevice(int* device)
+
+cudaHostGetDevicePointer(void** pDevice, void* pHost, unsigned int flags)
+  flags: Flags for extensions (must be 0 for now)
+
+cudaGetDeviceProperties(struct cudaDeviceProp * prop, int device)	
+

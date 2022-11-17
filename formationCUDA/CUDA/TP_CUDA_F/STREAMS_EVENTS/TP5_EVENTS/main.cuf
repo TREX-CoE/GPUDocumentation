@@ -1,0 +1,171 @@
+! vim: ft=fortran :
+! compile with pgfortran main.cuf
+
+module kernel_mod  
+contains
+
+  attributes(global) subroutine  myKernel_a(nbchunk, d_a)
+    implicit none
+    integer, value :: nbchunk
+    integer, dimension(:) :: d_a
+    
+    integer index, nbthreads, i
+    real*8 val
+
+    nbthreads = blockDim%x * gridDim%x;
+    
+    index = threadIdx%x + (blockIdx%x - 1) * blockDim%x
+
+    do i=0,(nbchunk-1)
+       
+       val = cos( DBLE(d_a(index + nbthreads * i)) ) 
+
+       d_a(index + nbthreads * i) = (index-1) + nbthreads * i + val;
+    enddo
+    
+  end subroutine myKernel_a
+
+
+  attributes(global) subroutine  myKernel_b(nbchunk, d_b)
+    implicit none
+    integer, value :: nbchunk
+    integer, dimension(:) :: d_b
+
+    integer index, nbthreads, i
+
+    nbthreads = blockDim%x * gridDim%x
+
+    index = threadIdx%x + (blockIdx%x - 1) * blockDim%x
+    do i=0,(nbchunk-1)
+       d_b(index + nbthreads * i) = d_b(index + nbthreads * i) + 1
+    enddo
+
+  end subroutine myKernel_b
+
+
+  attributes(global) subroutine  myKernel_c(size, d_a, d_b, d_c)
+    implicit none
+    integer, value :: size
+    integer, dimension(:) :: d_a, d_b, d_c
+
+    integer index
+
+    index = threadIdx%x + (blockIdx%x - 1) * blockDim%x
+    d_c(index) = d_b(index) + d_a(index) 
+  
+  end subroutine myKernel_c
+
+
+end module kernel_mod
+
+
+
+
+
+program main
+  use cudafor
+  use kernel_mod
+
+  implicit none
+
+
+  integer istat
+  integer device, nbMultipro
+  integer*8 totalGlobalMem
+  integer nb_threads, size, nbchunk
+  type(cudadeviceprop) prop
+  integer, allocatable, dimension(:), pinned :: h_a, h_b, h_c
+  integer, allocatable, dimension(:), device :: d_a, d_b, d_c
+  type(dim3) :: threadsPerBlock , nbBlocks
+  type(dim3) :: threadsPerBlock2, nbBlocks2
+
+
+  !!current device
+  istat = cudaGetDevice( device )
+
+  !!retreive properties
+  istat = cudaGetDeviceProperties(prop, device)
+
+  !!number of multiprocessors of the current device
+  nbMultipro = prop%multiProcessorCount
+  print *, "number of multipro: ", nbMultipro
+
+  !!total of global memory of the current device (in Bytes)
+  totalGlobalMem = prop%totalGlobalMem;
+
+
+  !!we will fix the number of threads to have only half multiprocessors
+  !!working for mykernel_a and the other half for mykernel_b
+  nb_threads = (nbMultipro/2) * 256;
+  size = ( (totalGlobalMem / 40) / nb_threads) * nb_threads;
+  nbchunk = size / nb_threads;
+
+  print *, "nb_threads: ", nb_threads
+  print *, "size:       ", size
+  print *, "nbchunk:    ", nbchunk
+
+  allocate(h_a(size), stat=istat)
+  allocate(h_b(size), stat=istat)
+  allocate(h_c(size), stat=istat)
+
+  h_a = 0;
+  h_b = 0;
+  h_c = 0;
+
+  !!allocation on the device
+  istat = cudaMalloc(d_a, size)
+  istat = cudaMalloc(d_b, size)
+  istat = cudaMalloc(d_c, size)
+
+  !!inialization on the device (copy of the host value)
+  istat = cudaMemcpy(d_a, h_a, size, cudaMemcpyHostToDevice);
+  istat = cudaMemcpy(d_b, h_b, size, cudaMemcpyHostToDevice);
+  istat = cudaMemcpy(d_c, h_c, size, cudaMemcpyHostToDevice);
+
+
+  threadsPerBlock = dim3(256,1,1)
+  nbBlocks = dim3( nbMultipro/2, 1, 1)
+
+
+
+  !!call myKernel_a in a stream
+  !!call myKernel_b then myKernel_c in an other stream (than the one used for myKernel_a)
+  !!ensure than myKernel_c start only after myKernel_a complete using event
+  ...
+  call myKernel_a<<< nbBlocks, threadsPerBlock >>>(nbchunk, d_a)
+
+  call myKernel_b<<< nbBlocks, threadsPerBlock >>>(nbchunk, d_b)
+
+
+  threadsPerBlock2 = dim3(256,1,1)
+  nbBlocks2 = dim3( size/threadsPerBlock2%x , 1, 1)
+
+  call myKernel_c<<< nbBlocks2, threadsPerBlock2 >>>(size, d_a, d_b, d_c);
+
+
+  !!copy the value of d_i in h_i
+  istat = cudaMemcpy(h_c, d_c, size, cudaMemcpyDeviceToHost);
+
+
+
+  !!print the result
+  if( (h_c(1) .eq. 2) .and. (h_c(258) .eq. 259) .and. (h_c(562) .eq. 563) ) then
+    print *, "SUCCESS"
+  else
+    print *, "ERROR: h_c(  1)= ", h_c(  1), " expected   2"
+    print *, "ERROR: h_c(258)= ", h_c(258), " expected 259"
+    print *, "ERROR: h_c(562)= ", h_c(562), " expected 563"
+  endif
+
+
+
+  !!free device and host memory
+  istat = cudaFree(d_a)
+  istat = cudaFree(d_b)
+  istat = cudaFree(d_c)
+  deallocate(h_a)
+  deallocate(h_b)
+  deallocate(h_c)
+
+
+end program main

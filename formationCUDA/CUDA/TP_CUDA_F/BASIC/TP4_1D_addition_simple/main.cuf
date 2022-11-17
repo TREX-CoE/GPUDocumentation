@@ -1,0 +1,92 @@
+! vim: ft=fortran :
+! compile with pgfortran main.cuf
+
+module kernel_mod
+contains
+attributes(global) subroutine  mykernel(d_a, d_b, d_c)
+  implicit none
+  integer, dimension(:) :: d_a, d_b, d_c
+  integer index
+
+  //do d_c = d_a + d_b
+  ...
+end subroutine mykernel
+end module kernel_mod
+
+
+
+program main
+  use cudafor
+  use kernel_mod
+  implicit none
+  integer istat, size, i, success, first_index_error
+  integer, allocatable, dimension(:) :: h_a, h_b, h_c
+  integer, allocatable, dimension(:), device :: d_a, d_b, d_c
+  type(dim3) :: threadsPerBlock, nbBlocks
+
+  size = 512
+
+  !!allocation and initialization on the host
+  allocate(h_a(size), stat=istat)
+  allocate(h_b(size), stat=istat)
+  allocate(h_c(size), stat=istat)
+
+  do i=1,size
+    h_a(i) = i
+    h_b(i) = mod(i,4)
+    h_c(i) = 0
+  end do
+
+
+  !!allocation on the device
+  istat = cudaMalloc(d_a, size)
+  istat = cudaMalloc(d_b, size)
+  istat = cudaMalloc(d_c, size)
+
+
+  !!inialization on the device (copy of the host value)
+  istat = cudaMemcpy(d_a, h_a, size, cudaMemcpyHostToDevice)
+  istat = cudaMemcpy(d_b, h_b, size, cudaMemcpyHostToDevice)
+
+  threadsPerBlock = dim3(32,1,1)
+  nbBlocks = ...
+
+
+  call myKernel<<< nbBlocks, threadsPerBlock >>>(d_a, d_b, d_c)
+
+
+  !!copy the value of d_c in h_c
+  istat = cudaMemcpy(h_c, d_c, size, cudaMemcpyDeviceToHost)
+
+
+  !!print the result
+  success = 1
+  first_index_error = -1
+
+  do i=1,size
+    if(success == 1 .and. h_c(i) /= (i+mod(i,4))) then
+      success = 0
+      first_index_error = i
+      end if
+  end do
+
+
+  if(success == 1) then
+    write(*,*) 'SUCCESS'
+  else
+    !!printf("ERROR: h_c(%d) = %d expected %d\n",first_index_error, h_c(first_index_error), first_index_error + first_index_error%4 )
+    write(*,*) 'ERROR', first_index_error, h_c(first_index_error), &
+    first_index_error + mod(first_index_error,4), &
+    h_a(first_index_error) + h_b(first_index_error)
+  end if
+
+
+  !!free device and host memory
+  istat = cudaFree(d_a)
+  istat = cudaFree(d_b)
+  istat = cudaFree(d_c)
+  deallocate(h_a)
+  deallocate(h_b)
+  deallocate(h_c)
+
+end program main

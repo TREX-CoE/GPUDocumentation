@@ -1,0 +1,47 @@
+Complete main.cu:
+
+  call myKernel_a in a stream
+  call myKernel_b then myKernel_c in an other stream (than the one used for myKernel_a)
+  ensure than myKernel_c start only after myKernel_a complete using event
+
+Generate a trace with nvprof
+  check that myKernel_c starts after mykernel_a
+
+
+
+
+
+cudaStream_t stream
+
+cudaStreamCreate(cudaStream_t *stream)
+
+cudaStreamDestroy(cudaStream_t stream)
+
+cudaDeviceSynchronize()
+
+cudaStreamSynchronize(cudaStream_t stream)
+
+cudaError_t cudaMemcpyAsync( void *dst, const void *src, size_t count, enum cudaMemcpyKind kind, cudaStream_t stream)
+
+<<< dim3 Dg, dim3 Db, size_t Ns, cudaStream_t stream >>>
+
+
+cudaEventCreate(cudaEvent_t *event)
+
+cudaEventCreateWithFlags(cudaEvent_t *event, unsigned int  flag)
+  flag: cudaEventDisableTiming
+
+cudaEventRecord(cudaEvent_t event, cudaStream_t stream)
+
+cudaEventDestroy(cudaEvent_t event)
+
+cudaEventQuery(cudaEvent_t event)
+
+cudaEventSynchronize(cudaEvent_t event)
+
+cudaStreamWaitEvent(cudaStream_t stream, cudaEvent_t event, unsigned int flags)
+  flags must be 0
+
+
+
+

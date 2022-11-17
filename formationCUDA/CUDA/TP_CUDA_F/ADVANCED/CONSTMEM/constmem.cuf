@@ -1,0 +1,100 @@
+! vim: ft=fortran :
+! compile with pgfortran main.cuf
+
+module kernel_mod
+  implicit none
+
+
+real :: coeff(4)
+... :: coeff
+contains
+
+attributes(global) subroutine  mykernel(d_a, coef)
+  implicit none
+  real, dimension(:) :: d_a
+  real, dimension(4) ::  coef
+  integer index, i
+
+  index = threadIdx%x + (blockIdx%x - 1) * blockDim%x
+  do i=1,4
+    d_a(index) = d_a(index) + coef(i)
+  end do
+end subroutine mykernel
+
+attributes(global) subroutine  mykernel_constmem(d_a)
+  implicit none
+  real, dimension(:) :: d_a
+  integer index, i
+
+  index = threadIdx%x + (blockIdx%x - 1) * blockDim%x
+  do i=1,4
+    d_a(index) = d_a(index) + coeff(i)
+  end do
+end subroutine mykernel_constmem
+end module kernel_mod
+
+
+
+program main
+  use cudafor
+  use kernel_mod
+  implicit none
+  integer istat, size, i
+  real, allocatable, dimension(:) :: h_a, h_res1, h_res2
+  real, allocatable, dimension(:), device :: d_a1, d_a2
+  real  :: cpucoeff(4)
+  real, allocatable, dimension(:), device :: d_coef
+  type(dim3) :: blocksize, gridsize
+
+  cpucoeff = (/ 11.32, 65.36, 8.32, 47.28 /)
+
+  !! initialization on the host
+  size = 1024*1024*128
+  allocate(h_a(size))
+  do i=1,size
+    h_a(i) = i
+  end do
+
+  !! kernel without constmem
+  istat = cudaMalloc(d_a1, size)
+  istat = cudaMemcpy(d_a1, h_a, size, cudaMemcpyHostToDevice)
+  
+  
+  istat = cudaMalloc(d_coef, 4)
+  istat = cudaMemcpy(d_coef, cpucoeff, 4, cudaMemcpyHostToDevice)
+
+
+  blocksize = dim3(128,1,1)
+  gridsize = dim3((size+blocksize%x-1)/blocksize%x,1,1)
+
+  
+  call mykernel<<<gridsize,blocksize>>>(d_a1, d_coef)
+  call mykernel<<<gridsize,blocksize>>>(d_a1, d_coef)
+  
+  allocate(h_res1(size))
+  istat = cudaMemcpy(h_res1, d_a1, size, cudaMemcpyDeviceToHost)
+  print*, "mykernel         : expected value:", 22. + 2*(11.32+ 65.36+ 8.32+ 47.28), "value: ", h_res1(22)  
+  istat = cudaFree(d_a1);
+  
+  !! kernel with constem
+  istat = cudaMalloc(d_a2, size)
+  istat = cudaMemcpy(d_a2, h_a, size, cudaMemcpyHostToDevice)
+  
+  !!copy cpucoeff in const memory
+  ...
+  
+  
+  call mykernel_constmem<<<gridsize,blocksize>>>(d_a2)
+  call mykernel_constmem<<<gridsize,blocksize>>>(d_a2)
+  
+  allocate(h_res2(size))
+  istat = cudaMemcpy(h_res2, d_a2, size, cudaMemcpyDeviceToHost)
+  print*, "mykernel_constmem: expected value:", 22. + 2*(11.32+ 65.36+ 8.32+ 47.28), "value: ", h_res2(22)  
+  istat = cudaFree(d_a2);
+
+  deallocate(h_a);
+  deallocate(h_res1);
+  deallocate(h_res2);
+end program main
+
+

@@ -1,0 +1,56 @@
+! vim: ft=fortran :
+! compile with pgfortran main.cuf
+
+module kernel_mod
+contains
+attributes(global) subroutine  mykernel(d_i)
+  implicit none
+  integer, dimension(:) :: d_i
+  d_i(1) = d_i(1) + 1
+end subroutine mykernel
+end module kernel_mod
+
+
+
+program main
+  use cudafor
+  use kernel_mod
+  implicit none
+  integer istat
+  integer, allocatable, dimension(:) :: h_i
+  integer, allocatable, dimension(:), device :: d_i
+  type(dim3) :: threadsPerBlock, numBlocks
+
+  !!allocation and initialization on the host
+  allocate(h_i(1))
+  h_i = 0
+
+
+  !!allocation on the device
+  istat = cudaMalloc(d_i, 1)
+
+
+  !!inialization on the device (copy of the host value)
+  istat = cudaMemcpy(d_i, h_i, 1, cudaMemcpyHostToDevice)
+
+
+
+  threadsPerBlock = dim3(1024,1,1)
+  numBlocks = dim3(1024,1,1)
+
+  call myKernel<<< numBlocks, threadsPerBlock >>>(d_i)
+
+
+  !!copy the value of d_i in h_i
+  istat = cudaMemcpy(h_i, d_i,  1, cudaMemcpyDeviceToHost)
+
+
+  !!print the result
+  write(*,*) 'value: ', h_i
+
+
+  !!free device and host memory
+  istat = cudaFree(d_i)
+  deallocate(h_i)
+
+end program main

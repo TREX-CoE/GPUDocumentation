@@ -1,0 +1,52 @@
+nvcc: NVIDIA (R) Cuda compiler driver
+Copyright (c) 2005-2018 NVIDIA Corporation
+Built on Sat_Aug_25_21:08:01_CDT_2018
+Cuda compilation tools, release 10.0, V10.0.130
+Iteration 1
+Success! elapsed 0.048939
+
+real	0m0.362s
+user	0m0.074s
+sys	0m0.274s
+Success! elapsed 0.0381231
+
+real	0m0.334s
+user	0m0.060s
+sys	0m0.271s
+Success! elapsed 0.0354115
+
+real	0m0.331s
+user	0m0.058s
+sys	0m0.270s
+Iteration 2
+Success! elapsed 0.0489536
+
+real	0m0.344s
+user	0m0.070s
+sys	0m0.271s
+Success! elapsed 0.0379916
+
+real	0m0.333s
+user	0m0.066s
+sys	0m0.264s
+Success! elapsed 0.0353686
+
+real	0m0.331s
+user	0m0.060s
+sys	0m0.268s
+Iteration 3
+Success! elapsed 0.0490179
+
+real	0m0.343s
+user	0m0.066s
+sys	0m0.275s
+Success! elapsed 0.0379654
+
+real	0m0.333s
+user	0m0.063s
+sys	0m0.267s
+Success! elapsed 0.035399
+
+real	0m0.332s
+user	0m0.049s
+sys	0m0.279s

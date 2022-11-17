@@ -1,0 +1,22 @@
+
+
+Complete the file main.cu
+
+
+
+attributes(global)   declares kernel, which is called on host and executed on device
+attributes(device)   declares device function, which is called and executed on device
+attributes(host)     declares host function, which is called and executed on host
+
+
+dim3 : integer vector type
+  type(dim3) value = dim3( nx, ny, nz )
+  type(dim3) value 
+  value%x = nx
+  value%y = ny
+  value%z = nz
+  
+
+call kernelName<<< blocksInGrid, threadsPerBlock >>>(args, ... )
+
+

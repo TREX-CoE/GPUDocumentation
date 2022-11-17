@@ -1,0 +1,4 @@
+olympevolta0
+Device property unifiedAddressing value: 1
+Device property canUseHostPointerForRegisteredMem value: 1
+h[1000] = 1001   expected 1001

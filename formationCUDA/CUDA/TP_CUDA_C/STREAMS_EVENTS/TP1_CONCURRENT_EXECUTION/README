@@ -1,0 +1,20 @@
+Complete the file concurrent.cu
+  compile
+
+
+Profile with nvprof:
+  #nvprof ./bin
+  
+
+According to nvprof how much time is spend on GPU between t1 and t4?
+Compare this time with the one given by the application.
+
+
+Create a profile trave with nvprof: 
+  #nvprof --export-profile profile.nvvp ./bin
+
+Read the profile using nvvp
+
+
+
+

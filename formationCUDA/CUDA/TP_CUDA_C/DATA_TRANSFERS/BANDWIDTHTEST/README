@@ -1,0 +1,16 @@
+
+Copy bandwidthTest.cu from the nvidia samples
+  
+  #cp ${CUDA_HOME}/samples/1_Utilities/bandwidthTest/bandwidthTest.cu ./
+
+
+Compile :
+
+  #nvcc -I ${CUDA_HOME}/samples/common/inc  ./bandwidthTest.cu -o ./bandwidthTest.exe
+
+
+
+Execute binaries using pageable memory then pinned memory:
+  #./bandwidthTest.exe
+
+

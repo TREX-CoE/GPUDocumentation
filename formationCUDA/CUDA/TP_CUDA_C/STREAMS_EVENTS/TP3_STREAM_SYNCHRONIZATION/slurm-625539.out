@@ -1,0 +1,6 @@
+olympevolta0
+==47049== NVPROF is profiling process 47049, command: ./main
+==47049== Warning: The user does not have permission to profile on the target device. See the following link for instructions to enable permissions and get more information: https://developer.nvidia.com/NVSOLN1000 
+==47049== Warning: Some profiling data are not recorded. Make sure cudaProfilerStop() or cuProfilerStop() is called before application exit to flush profile data.
+==47049== Generated result file: /olympe2/invite/hoffer/CUDA/TP_CUDA_C/STREAMS_EVENTS/TP3_STREAM_SYNCHRONIZATION/prof_v1
+done

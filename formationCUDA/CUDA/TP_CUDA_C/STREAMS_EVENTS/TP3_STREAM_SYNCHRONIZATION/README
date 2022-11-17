@@ -1,0 +1,40 @@
+
+1) Compile two_stream.cu
+     generate a trace with nvprof and look at it with nvvp
+
+
+2) Add a call to cudaDeviceSynchronize before t1
+     compile
+     generate a trace with nvprof and look at it with nvvp (use an other name for the trace)
+
+
+3) Comment the call to cudaDeviceSynchronize
+   Add a call to cudaStreamSynchronize to synchronize stream[0] before t1
+     compile
+     generate a trace with nvprof and look at it with nvvp (use an other name for the trace)
+
+
+
+
+
+
+cudaStream_t stream
+
+cudaStreamCreate(cudaStream_t *stream)
+
+cudaStreamDestroy(cudaStream_t stream)
+
+cudaDeviceSynchronize()
+
+cudaStreamSynchronize(cudaStream_t stream)
+
+cudaError_t cudaMemcpyAsync( void *dst, const void *src, size_t count, enum cudaMemcpyKind kind, cudaStream_t stream)
+
+<<< dim3 Dg, dim3 Db, size_t Ns, cudaStream_t stream >>>
+
+
+
+
+
+
+
