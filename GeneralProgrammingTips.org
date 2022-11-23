@@ -1,0 +1,7 @@
+* NVIDIA
+** Variables declaration
+    When you use OpenMp and/or openAcc you can't declare array or pointers inside parallel section, even if it's inside a function call. When you program the best option is to think like you code in Fortran.
+    Declare all your varaibles and array at the start of the function, and after move it where you need it. After you can do your compute.
+* AMD
+* Intel
+* General
